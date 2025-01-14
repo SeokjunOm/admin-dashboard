@@ -1,189 +1,374 @@
+// App.js
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+// 필요한 상수값들을 정의합니다
+const SHARERS = ['김팀장', '이대리', '박사원', '최주임'];
+const CATEGORIES = ['한식', '중식', '일식', '양식', '카페', '분식', '기타'];
+const RATINGS = [1, 2, 3, 4, 5];
+const API_BASE_URL = 'https://67866aa9f80b78923aa6bee6.mockapi.io/restaurants';
+
 function App() {
-  const [stats, setStats] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [newOrder, setNewOrder] = useState({ customerName: '', product: '', amount: '', status: 'pending', statusLabel: 'in progress' });
-  const [editingOrder, setEditingOrder] = useState(null);
+ // 상태 관리 
+ const [restaurants, setRestaurants] = useState([]);
+ const [loading, setLoading] = useState(true);
+ const [error, setError] = useState(null);
+ const [searchQuery, setSearchQuery] = useState('');
+ 
+ // 모달 상태 관리
+ const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+ const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+ const [editingRestaurant, setEditingRestaurant] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const statsResponse = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/stats');
-        const statsData = await statsResponse.json();
-        setStats(statsData);
+ // 새로운 맛집 정보 상태 관리
+ const [newRestaurant, setNewRestaurant] = useState({
+   name: '',
+   sharedBy: SHARERS[0],
+   category: CATEGORIES[0],
+   rating: RATINGS[4],
+   comment: '',
+   link: ''
+ });
 
-        const ordersResponse = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/orders');
-        const ordersData = await ordersResponse.json();
-        setOrders(ordersData);
-      } catch (err) {
-        setError('데이터를 가져오는 중 에러가 발생했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
+ // 초기 데이터 로딩
+ useEffect(() => {
+   fetchRestaurants();
+ }, []);
 
-    fetchData();
-  }, []);
+ // 맛집 목록 데이터 가져오기
+ const fetchRestaurants = async () => {
+   try {
+     setLoading(true);
+     const response = await fetch(API_BASE_URL);
+     if (!response.ok) throw new Error('데이터 로딩 실패');
+     const data = await response.json();
+     setRestaurants(data);
+   } catch (err) {
+     setError(err.message);
+   } finally {
+     setLoading(false);
+   }
+ };
 
-  // 데이터 추가 함수
-  const addOrder = async () => {
-    try {
-      const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newOrder),
-      });
-      const data = await response.json();
-      setOrders([...orders, data]);
-      setNewOrder({ customerName: '', product: '', amount: '', status: 'pending', statusLabel: '대기중' });
-    } catch (err) {
-      console.error('추가 실패:', err);
-    }
-  };
+ // 맛집 추가 처리
+ const handleAddRestaurant = async () => {
+   try {
+     if (!newRestaurant.name || !newRestaurant.link) {
+       alert('가게명과 링크는 필수 입력사항입니다');
+       return;
+     }
 
-  // 데이터 삭제 함수
-  const deleteOrder = async (id) => {
-    try {
-      await fetch(`https://67866aa9f80b78923aa6bee6.mockapi.io/orders/${id}`, { method: 'DELETE' });
-      setOrders(orders.filter((order) => order.id !== id));
-    } catch (err) {
-      console.error('삭제 실패:', err);
-    }
-  };
+     const response = await fetch(API_BASE_URL, {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify(newRestaurant)
+     });
 
-  // 데이터 수정 함수
-  const updateOrder = async () => {
-    try {
-      const response = await fetch(`https://67866aa9f80b78923aa6bee6.mockapi.io/orders/${editingOrder.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingOrder),
-      });
-      const updatedOrder = await response.json();
-      setOrders(orders.map((order) => (order.id === updatedOrder.id ? updatedOrder : order)));
-      setEditingOrder(null);
-    } catch (err) {
-      console.error('수정 실패:', err);
-    }
-  };
+     if (!response.ok) throw new Error('맛집 추가 실패');
 
-  // 매출과 주문 카운트를 계산하는 함수
-  const totalSales = orders.reduce((acc, order) => acc + parseFloat(order.amount), 0);
-  const totalOrders = new Set(orders.map(order => order.id)).size; // 고유한 주문 ID 개수
+     const addedRestaurant = await response.json();
+     setRestaurants(prev => [...prev, addedRestaurant]);
+     setIsAddDialogOpen(false);
+     resetForm();
+     alert('맛집이 추가되었습니다!');
+   } catch (err) {
+     alert(err.message);
+   }
+ };
 
-  if (loading) return <div>로딩 중...</div>;
-  if (error) return <div>{error}</div>;
+ // 맛집 수정 처리
+ const handleUpdateRestaurant = async () => {
+   try {
+     if (!editingRestaurant?.id) return;
 
-  return (
-    <div className="admin-dashboard">
-      {/* 헤더 */}
-      <header>
-        <h1>관리자 대시보드</h1>
-      </header>
+     const response = await fetch(`${API_BASE_URL}/${editingRestaurant.id}`, {
+       method: 'PUT',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify(editingRestaurant)
+     });
 
-      {/* 통계 카드 */}
-      <div className="stats-cards">
-        <div className="card">
-          <h2>매출</h2>
-          <p className="value">{totalSales.toLocaleString()} 원</p>
-          <p className="change">+23% 지난달 대비</p>
-        </div>
-        <div className="card">
-          <h2>주문</h2>
-          <p className="value">{totalOrders}</p>
-          <p className="change">+8% 지난달 대비</p>
-        </div>
-      </div>
+     if (!response.ok) throw new Error('수정 실패');
 
-      {/* 새 주문 추가 */}
-      <section>
-        <h2>새 주문 추가</h2>
-        <input
-          type="text"
-          placeholder="고객명"
-          value={newOrder.customerName}
-          onChange={(e) => setNewOrder({ ...newOrder, customerName: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="상품"
-          value={newOrder.product}
-          onChange={(e) => setNewOrder({ ...newOrder, product: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="금액"
-          value={newOrder.amount}
-          onChange={(e) => setNewOrder({ ...newOrder, amount: e.target.value })}
-        />
-        <button onClick={addOrder}>추가</button>
-      </section>
+     const updatedRestaurant = await response.json();
+     setRestaurants(prev => 
+       prev.map(rest => rest.id === updatedRestaurant.id ? updatedRestaurant : rest)
+     );
+     setIsEditDialogOpen(false);
+     setEditingRestaurant(null);
+   } catch (err) {
+     alert(err.message);
+   }
+ };
 
-      {/* 최근 주문 */}
-      <section className="recent-orders">
-        <h2>최근 주문</h2>
-        <p>최근에 들어온 주문 목록입니다</p>
-        <table>
-          <thead>
-            <tr>
-              <th>주문번호</th>
-              <th>고객명</th>
-              <th>상품</th>
-              <th>금액</th>
-              <th>상태</th>
-              <th>작업</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td>{order.id}</td>
-                <td>{order.customerName}</td>
-                <td>{order.product}</td>
-                <td>{order.amount}</td>
-                <td className={`status ${order.status}`}>{order.statusLabel}</td>
-                <td>
-                  <button onClick={() => setEditingOrder(order)}>수정</button>
-                  <button onClick={() => deleteOrder(order.id)}>삭제</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+ // 맛집 삭제 처리
+ const handleDeleteRestaurant = async (id) => {
+   if (!window.confirm('정말 삭제하시겠습니까?')) return;
 
-      {/* 수정 UI */}
-      {editingOrder && (
-        <section>
-          <h2>주문 수정</h2>
-          <input
-            type="text"
-            placeholder="고객명"
-            value={editingOrder.customerName}
-            onChange={(e) => setEditingOrder({ ...editingOrder, customerName: e.target.value })}
-          />
-          <input
-            type="text"
-            placeholder="상품"
-            value={editingOrder.product}
-            onChange={(e) => setEditingOrder({ ...editingOrder, product: e.target.value })}
-          />
-          <input
-            type="text"
-            placeholder="금액"
-            value={editingOrder.amount}
-            onChange={(e) => setEditingOrder({ ...editingOrder, amount: e.target.value })}
-          />
-          <button onClick={updateOrder}>수정 완료</button>
-          <button onClick={() => setEditingOrder(null)}>취소</button>
-        </section>
-      )}
-    </div>
-  );
+   try {
+     const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+     if (!response.ok) throw new Error('삭제 실패');
+     setRestaurants(prev => prev.filter(rest => rest.id !== id));
+   } catch (err) {
+     alert(err.message);
+   }
+ };
+
+ // 입력 폼 초기화
+ const resetForm = () => {
+   setNewRestaurant({
+     name: '',
+     sharedBy: SHARERS[0],
+     category: CATEGORIES[0], 
+     rating: RATINGS[4],
+     comment: '',
+     link: ''
+   });
+ };
+
+ // 카테고리별 통계 계산
+ const getCategoryStats = () => {
+   const stats = restaurants.reduce((acc, restaurant) => {
+     const category = restaurant.category || '미분류';
+     acc[category] = (acc[category] || 0) + 1;
+     return acc;
+   }, {});
+
+   return Object.entries(stats).map(([category, count]) => ({
+     category,
+     count
+   }));
+ };
+
+ // 검색 필터링
+ const filteredRestaurants = restaurants.filter(restaurant => {
+   const query = searchQuery.toLowerCase();
+   return (
+     restaurant.name?.toLowerCase().includes(query) ||
+     restaurant.category?.toLowerCase().includes(query)
+   );
+ });
+
+ if (loading) return <div className="loading">로딩중...</div>;
+ if (error) return <div className="error">{error}</div>;
+
+ return (
+   <div className="admin-dashboard">
+     <header className="dashboard-header">
+       <h1>숨슐랭 가이드</h1>
+       <p className="header-subtitle">맛있는 발견의 시작</p>
+     </header>
+
+     <div className="stats-cards">
+       {getCategoryStats().map(({ category, count }) => (
+         <div key={category} className="stat-card">
+           <div className="stat-card-content">
+             <h3 className="stat-card-title">{category}</h3>
+             <p className="stat-card-value">{count}</p>
+             <p className="stat-card-label">개의 맛집</p>
+           </div>
+         </div>
+       ))}
+     </div>
+
+     <section className="restaurants-section">
+       <div className="restaurants-header">
+         <div className="header-content">
+           <h2>맛집 리스트</h2>
+           <p>숨고 오피스 근처의 맛집을 공유해주세요!</p>
+         </div>
+         <div className="header-actions">
+           <input
+             type="text"
+             placeholder="맛집 검색..."
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+             className="search-input"
+           />
+           <button 
+             className="add-restaurant-btn"
+             onClick={() => setIsAddDialogOpen(true)}
+           >
+             맛집 추가하기
+           </button>
+         </div>
+       </div>
+
+       <table className="restaurants-table">
+         <thead>
+           <tr>
+             <th>가게명</th>
+             <th>공유자</th>
+             <th>카테고리</th>
+             <th>평점</th>
+             <th>코멘트</th>
+             <th>링크</th>
+             <th>작업</th>
+           </tr>
+         </thead>
+         <tbody>
+           {filteredRestaurants.map((restaurant) => (
+             <tr key={restaurant.id}>
+               <td>{restaurant.name}</td>
+               <td>{restaurant.sharedBy}</td>
+               <td>{restaurant.category}</td>
+               <td>{'⭐'.repeat(restaurant.rating)}</td>
+               <td>{restaurant.comment}</td>
+               <td>
+                 {restaurant.link && (
+                   <a 
+                     href={restaurant.link}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="restaurant-link"
+                   >
+                     바로가기
+                   </a>
+                 )}
+               </td>
+               <td className="action-buttons">
+                 <button 
+                   className="edit-btn"
+                   onClick={() => {
+                     setEditingRestaurant(restaurant);
+                     setIsEditDialogOpen(true);
+                   }}
+                 >
+                   수정
+                 </button>
+                 <button 
+                   className="delete-btn"
+                   onClick={() => handleDeleteRestaurant(restaurant.id)}
+                 >
+                   삭제
+                 </button>
+               </td>
+             </tr>
+           ))}
+         </tbody>
+       </table>
+     </section>
+
+     {isAddDialogOpen && (
+       <div className="dialog-overlay" onClick={() => setIsAddDialogOpen(false)}>
+         <div className="dialog-content" onClick={e => e.stopPropagation()}>
+           <div className="dialog-header">
+             <h2>새로운 맛집 추가하기</h2>
+             <button className="close-btn" onClick={() => setIsAddDialogOpen(false)}>✕</button>
+           </div>
+           <div className="dialog-form">
+             <div className="form-field">
+               <label>가게명</label>
+               <input
+                 type="text"
+                 value={newRestaurant.name}
+                 onChange={(e) => setNewRestaurant(prev => ({
+                   ...prev,
+                   name: e.target.value
+                 }))}
+                 placeholder="가게 이름을 입력해주세요"
+               />
+             </div>
+             <div className="form-field">
+               <label>공유자</label>
+               <select
+                 value={newRestaurant.sharedBy}
+                 onChange={(e) => setNewRestaurant(prev => ({
+                   ...prev,
+                   sharedBy: e.target.value
+                 }))}
+               >
+                 {SHARERS.map(sharer => (
+                   <option key={sharer} value={sharer}>{sharer}</option>
+                 ))}
+               </select>
+             </div>
+             <div className="form-field">
+               <label>카테고리</label>
+               <select
+                 value={newRestaurant.category}
+                 onChange={(e) => setNewRestaurant(prev => ({
+                   ...prev,
+                   category: e.target.value
+                 }))}
+               >
+                 {CATEGORIES.map(category => (
+                   <option key={category} value={category}>{category}</option>
+                 ))}
+               </select>
+             </div>
+             <div className="form-field">
+               <label>평점</label>
+               <div className="rating-selector">
+                 {RATINGS.map(rating => (
+                   <button
+                     key={rating}
+                     type="button"
+                     className={`rating-btn ${newRestaurant.rating >= rating ? 'active' : ''}`}
+                     onClick={() => setNewRestaurant(prev => ({ ...prev, rating }))}
+                   >
+                     ⭐
+                   </button>
+                 ))}
+               </div>
+             </div>
+             <div className="form-field">
+               <label>코멘트</label>
+               <textarea
+                 value={newRestaurant.comment}
+                 onChange={(e) => setNewRestaurant(prev => ({
+                   ...prev,
+                   comment: e.target.value
+                 }))}
+                 placeholder="맛집에 대한 코멘트를 입력해주세요"
+               />
+             </div>
+             <div className="form-field">
+               <label>링크</label>
+               <input
+                 type="text"
+                 value={newRestaurant.link}
+                 onChange={(e) => setNewRestaurant(prev => ({
+                   ...prev,
+                   link: e.target.value.trim()
+                 }))}
+                 placeholder="네이버 지도 URL을 입력해주세요"
+               />
+             </div>
+             <button className="save-btn" onClick={handleAddRestaurant}>
+               저장하기
+             </button>
+           </div>
+         </div>
+       </div>
+     )}
+
+     {isEditDialogOpen && editingRestaurant && (
+       <div className="dialog-overlay" onClick={() => setIsEditDialogOpen(false)}>
+         <div className="dialog-content" onClick={e => e.stopPropagation()}>
+           <div className="dialog-header">
+             <h2>맛집 정보 수정하기</h2>
+             <button className="close-btn" onClick={() => setIsEditDialogOpen(false)}>✕</button>
+           </div>
+           <div className="dialog-form">
+             <div className="form-field">
+               <label>코멘트</label>
+               <textarea
+                 value={editingRestaurant.comment}
+                 onChange={(e) => setEditingRestaurant(prev => ({
+                   ...prev,
+                   comment: e.target.value
+                 }))}
+               />
+             </div>
+             <button className="save-btn" onClick={handleUpdateRestaurant}>
+               수정 완료
+             </button>
+           </div>
+         </div>
+       </div>
+     )}
+   </div>
+ );
 }
 
 export default App;
