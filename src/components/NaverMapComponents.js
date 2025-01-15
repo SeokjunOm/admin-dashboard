@@ -12,33 +12,39 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
       // 축약 URL인 경우 (naver.me)
       if (url.includes('naver.me')) {
         try {
-          const id = url.split('/').pop();  // URL의 마지막 부분을 ID로 사용
+          const response = await fetch(url);
+          const fullUrl = response.url;
+          return extractPlaceIdFromFullUrl(fullUrl);
+        } catch (error) {
+          // 축약 URL에서 직접 ID 추출 시도
+          const id = url.split('/').pop();
           if (id && id.length > 0) {
             return id;
           }
-        } catch (error) {
           console.error('축약 URL 처리 중 에러:', error);
         }
       }
       
-      // 일반 URL 처리
-      const patterns = [
-        /place(?:%2F|\/)([\d]+)/,  // place/ 또는 place%2F 뒤의 숫자
-        /entry\/place\/([\d]+)/,    // entry/place/ 뒤의 숫자
-        /restaurant\/([\d]+)/,      // restaurant/ 뒤의 숫자
-        /location\/([\d]+)/,        // location/ 뒤의 숫자
-        /(\d+)$/                    // URL 끝의 숫자 (축약 URL용)
-      ];
-
-      for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match) return match[1];
-      }
-      
-      return null;
+      return extractPlaceIdFromFullUrl(url);
     } catch (err) {
       throw new Error('URL 처리 중 오류가 발생했습니다.');
     }
+  };
+
+  const extractPlaceIdFromFullUrl = (url) => {
+    const patterns = [
+      /place(?:%2F|\/)([\d]+)/,
+      /entry\/place\/([\d]+)/,
+      /restaurant\/([\d]+)/,
+      /location\/([\d]+)/,
+      /(\d+)$/
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
   };
 
   // URL 입력값이 변경될 때마다 실행되는 함수
@@ -57,24 +63,19 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
           return;
         }
 
-        // 네이버 지도 API 호출
-        const map = window.naver.maps;
-        
-        // place ID를 통해 장소 상세 정보 조회
-        const response = await fetch(`https://map.naver.com/v5/api/sites/summary/${placeId}?lang=ko`);
-        if (!response.ok) throw new Error('장소 정보를 가져오는데 실패했습니다');
-        
-        const placeInfo = await response.json();
-        
-        // API 응답에서 필요한 데이터 추출
-        onPlaceSelect({
-          name: placeInfo.name,
-          address: placeInfo.fullAddress || placeInfo.address,
-          rating: placeInfo.reviewScore ? Math.round(placeInfo.reviewScore) : 0,
+        // 테스트용 더미 데이터 (실제 구현 시 API로 대체)
+        const placeInfo = {
+          name: "테스트 식당",
+          address: "서울시 강남구 테헤란로 133",
+          rating: 4,
           coordinates: {
-            lat: placeInfo.y,
-            lng: placeInfo.x
-          },
+            lat: 37.4987,
+            lng: 127.0297
+          }
+        };
+
+        onPlaceSelect({
+          ...placeInfo,
           link: newUrl
         });
 
@@ -108,50 +109,68 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
 const RestaurantMap = ({ restaurants, height = '400px' }) => {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const infoWindowRef = useRef(null);
 
-  // 숨고 오피스 위치 (테헤란로 427)
+  // 숨고 오피스 위치 (테헤란로 133)
   const DEFAULT_CENTER = {
-    lat: 37.5065,
-    lng: 127.0536
+    lat: 37.4987,
+    lng: 127.0297
   };
 
   useEffect(() => {
-    // 네이버 맵 스크립트가 로드되었는지 확인
     const initializeMap = () => {
       if (!window.naver || !window.naver.maps || !mapRef.current) {
         setTimeout(initializeMap, 1000);
         return;
       }
 
-      // 지도 초기화 시 기준점 설정
+      // 지도 초기화
       const map = new window.naver.maps.Map(mapRef.current, {
         center: new window.naver.maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng),
-        zoom: 15  // 줌 레벨도 조정
+        zoom: 15
       });
 
-      // 기존 마커 제거
+      // 기존 마커와 정보창 제거
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current = [];
+      if (infoWindowRef.current) {
+        infoWindowRef.current.setMap(null);
+      }
 
-      // 기준점 마커 추가
-      new window.naver.maps.Marker({
+      // 숨고 오피스 마커 추가
+      const officeMarker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng),
         map: map,
         icon: {
-          content: `<div style="
-            background: #FF4757;
-            padding: 5px 10px;
-            border-radius: 20px;
-            color: white;
-            font-size: 12px;
-            font-weight: 600;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-          ">숨고 오피스</div>`,
-          anchor: new window.naver.maps.Point(60, 15)
+          content: '<div style="width: 12px; height: 12px; background: #FF4757; border-radius: 50%; border: 2px solid #FFF; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
+          anchor: new window.naver.maps.Point(6, 6)
         }
       });
 
-      // 모든 레스토랑의 좌표를 포함하는 경계 설정
+      // 오피스 정보창
+      const officeInfoWindow = new window.naver.maps.InfoWindow({
+        content: `
+          <div style="padding: 10px;">
+            <strong>숨고 오피스</strong>
+            <p style="margin: 5px 0 0; font-size: 12px;">테헤란로 133</p>
+          </div>
+        `,
+        borderWidth: 0,
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+        pixelOffset: new window.naver.maps.Point(0, -10)
+      });
+
+      // 오피스 마커 이벤트
+      window.naver.maps.Event.addListener(officeMarker, 'mouseover', () => {
+        officeInfoWindow.open(map, officeMarker);
+      });
+      window.naver.maps.Event.addListener(officeMarker, 'mouseout', () => {
+        officeInfoWindow.close();
+      });
+
+      // 경계 설정
       const bounds = new window.naver.maps.LatLngBounds();
       bounds.extend(new window.naver.maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng));
 
@@ -168,64 +187,53 @@ const RestaurantMap = ({ restaurants, height = '400px' }) => {
           position,
           map,
           icon: {
-            content: `<div style="
-              background: var(--primary);
-              padding: 5px 10px;
-              border-radius: 20px;
-              color: white;
-              font-size: 12px;
-              font-weight: 600;
-              box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            ">${restaurant.name}</div>`,
-            anchor: new window.naver.maps.Point(60, 15)
+            content: '<div style="width: 10px; height: 10px; background: var(--primary); border-radius: 50%; border: 2px solid #FFF; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
+            anchor: new window.naver.maps.Point(5, 5)
           }
         });
 
-        // 마커 클릭 시 표시할 정보창
+        // 마커에 마우스 오버시 표시할 정보창
         const infoWindow = new window.naver.maps.InfoWindow({
           content: `
-            <div style="padding: 15px; max-width: 200px;">
-              <h4 style="margin: 0 0 10px; font-size: 14px;">${restaurant.name}</h4>
-              <p style="margin: 0 0 5px; font-size: 12px; color: #666;">
-                ${restaurant.category} · ${restaurant.sharedBy}
-              </p>
-              <p style="margin: 0; color: #FFB800;">
-                ${'⭐'.repeat(restaurant.rating)}
-              </p>
+            <div style="padding: 10px;">
+              <strong>${restaurant.name}</strong>
+              <p style="margin: 5px 0 0; font-size: 12px;">${restaurant.category} · ${restaurant.sharedBy}</p>
+              <p style="margin: 5px 0 0; color: #FFB800;">${'⭐'.repeat(restaurant.rating)}</p>
             </div>
           `,
           borderWidth: 0,
           backgroundColor: 'white',
-          borderRadius: '12px',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+          borderRadius: '8px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+          pixelOffset: new window.naver.maps.Point(0, -10)
         });
 
-        // 마커 클릭 이벤트
-        window.naver.maps.Event.addListener(marker, 'click', () => {
-          if (infoWindow.getMap()) {
-            infoWindow.close();
-          } else {
-            infoWindow.open(map, marker);
-          }
+        // 마커 이벤트
+        window.naver.maps.Event.addListener(marker, 'mouseover', () => {
+          infoWindow.open(map, marker);
+        });
+        window.naver.maps.Event.addListener(marker, 'mouseout', () => {
+          infoWindow.close();
         });
 
         bounds.extend(position);
         markersRef.current.push(marker);
       });
 
-      // 모든 마커가 보이도록 지도 조정 (마커가 있을 경우에만)
+      // 모든 마커가 보이도록 지도 조정
       if (markersRef.current.length > 0) {
         map.fitBounds(bounds);
       }
     };
 
-    // 초기화 시작
     initializeMap();
 
-    // 컴포넌트 언마운트 시 마커 제거
     return () => {
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current = [];
+      if (infoWindowRef.current) {
+        infoWindowRef.current.setMap(null);
+      }
     };
   }, [restaurants]);
 

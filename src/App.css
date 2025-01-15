@@ -411,12 +411,11 @@
     cursor: not-allowed;
   }
   
-  /* 단계별 폼 버튼 */
+  /* 폼 액션 버튼 */
   .form-actions {
     display: flex;
     gap: 1rem;
     margin-top: 1.5rem;
-    width: 100%;
   }
   
   .form-actions button {
@@ -427,16 +426,29 @@
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
+  }
+  
+  .next-btn {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+  }
+  
+  .next-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+  }
+  
+  .form-actions .back-btn,
+  .form-actions .save-btn {
     flex: 1;
   }
   
-  .next-btn,
   .save-btn {
     background: var(--primary);
     color: white;
   }
   
-  .next-btn:hover,
   .save-btn:hover {
     background: var(--primary-hover);
     transform: translateY(-1px);
