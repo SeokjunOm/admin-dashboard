@@ -11,33 +11,34 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
     try {
       // 축약 URL인 경우 (naver.me)
       if (url.includes('naver.me')) {
-        // CORS 이슈를 피하기 위해 서버를 통해 리다이렉트 URL을 가져옴
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/expand-url?url=${encodeURIComponent(url)}`);
-        if (!response.ok) throw new Error('URL 확장에 실패했습니다.');
-        const { fullUrl } = await response.json();
-        return extractPlaceIdFromFullUrl(fullUrl);
+        try {
+          const id = url.split('/').pop();  // URL의 마지막 부분을 ID로 사용
+          if (id && id.length > 0) {
+            return id;
+          }
+        } catch (error) {
+          console.error('축약 URL 처리 중 에러:', error);
+        }
       }
-      // 일반 URL인 경우
-      return extractPlaceIdFromFullUrl(url);
+      
+      // 일반 URL 처리
+      const patterns = [
+        /place(?:%2F|\/)([\d]+)/,  // place/ 또는 place%2F 뒤의 숫자
+        /entry\/place\/([\d]+)/,    // entry/place/ 뒤의 숫자
+        /restaurant\/([\d]+)/,      // restaurant/ 뒤의 숫자
+        /location\/([\d]+)/,        // location/ 뒤의 숫자
+        /(\d+)$/                    // URL 끝의 숫자 (축약 URL용)
+      ];
+
+      for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) return match[1];
+      }
+      
+      return null;
     } catch (err) {
       throw new Error('URL 처리 중 오류가 발생했습니다.');
     }
-  };
-
-  const extractPlaceIdFromFullUrl = (url) => {
-    // 다양한 형태의 네이버 지도 URL에서 place ID를 추출
-    const patterns = [
-      /place(?:%2F|\/)([\d]+)/,  // place/ 또는 place%2F 뒤의 숫자
-      /entry\/place\/([\d]+)/,    // entry/place/ 뒤의 숫자
-      /restaurant\/([\d]+)/,      // restaurant/ 뒤의 숫자
-      /location\/([\d]+)/         // location/ 뒤의 숫자
-    ];
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) return match[1];
-    }
-    return null;
   };
 
   const handleSearch = async () => {
@@ -50,16 +51,20 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
         throw new Error('올바른 네이버 지도 URL이 아닙니다');
       }
 
-      // Mock API 호출
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/place-info/${placeId}`);
-      if (!response.ok) throw new Error('장소 정보를 가져오는데 실패했습니다');
+      // Mock API 호출 - 실제 구현 시에는 서버에서 네이버 API를 호출
+      // 테스트용 더미 데이터
+      const placeInfo = {
+        name: "테스트 식당",
+        address: "서울시 강남구 테헤란로",
+        rating: 4,
+        coordinates: {
+          lat: 37.5666103,
+          lng: 126.9783882
+        }
+      };
       
-      const placeInfo = await response.json();
       onPlaceSelect({
-        name: placeInfo.name,
-        address: placeInfo.address,
-        rating: Math.round(placeInfo.rating || 0),
-        coordinates: placeInfo.coordinates,
+        ...placeInfo,
         link: mapUrl
       });
 
