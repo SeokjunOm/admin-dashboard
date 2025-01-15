@@ -41,38 +41,49 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
     }
   };
 
-  const handleSearch = async () => {
-    setLoading(true);
-    setError(null);
+  // URL 입력값이 변경될 때마다 실행되는 함수
+  const handleUrlChange = async (e) => {
+    const newUrl = e.target.value;
+    setMapUrl(newUrl);
     
-    try {
-      const placeId = await extractPlaceId(mapUrl);
-      if (!placeId) {
-        throw new Error('올바른 네이버 지도 URL이 아닙니다');
-      }
-
-      // Mock API 호출 - 실제 구현 시에는 서버에서 네이버 API를 호출
-      // 테스트용 더미 데이터
-      const placeInfo = {
-        name: "테스트 식당",
-        address: "서울시 강남구 테헤란로",
-        rating: 4,
-        coordinates: {
-          lat: 37.5666103,
-          lng: 126.9783882
-        }
-      };
-      
-      onPlaceSelect({
-        ...placeInfo,
-        link: mapUrl
-      });
-
+    if (newUrl) {
+      setLoading(true);
       setError(null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      
+      try {
+        const placeId = await extractPlaceId(newUrl);
+        if (!placeId) {
+          setError('올바른 네이버 지도 URL이 아닙니다');
+          return;
+        }
+
+        // 네이버 지도 API 호출
+        const map = window.naver.maps;
+        
+        // place ID를 통해 장소 상세 정보 조회
+        const response = await fetch(`https://map.naver.com/v5/api/sites/summary/${placeId}?lang=ko`);
+        if (!response.ok) throw new Error('장소 정보를 가져오는데 실패했습니다');
+        
+        const placeInfo = await response.json();
+        
+        // API 응답에서 필요한 데이터 추출
+        onPlaceSelect({
+          name: placeInfo.name,
+          address: placeInfo.fullAddress || placeInfo.address,
+          rating: placeInfo.reviewScore ? Math.round(placeInfo.reviewScore) : 0,
+          coordinates: {
+            lat: placeInfo.y,
+            lng: placeInfo.x
+          },
+          link: newUrl
+        });
+
+      } catch (err) {
+        console.error('API 호출 에러:', err);
+        setError('장소 정보를 가져오는데 실패했습니다');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -80,22 +91,13 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
     <div className="map-search">
       <div className="form-field">
         <label>네이버 지도 URL</label>
-        <div className="search-input-group">
-          <input
-            type="text"
-            value={mapUrl}
-            onChange={(e) => setMapUrl(e.target.value)}
-            placeholder="네이버 지도 URL을 붙여넣으세요 (축약 URL도 가능)"
-            className="search-input"
-          />
-          <button 
-            onClick={handleSearch}
-            disabled={loading || !mapUrl}
-            className="search-btn"
-          >
-            {loading ? '검색중...' : '검색'}
-          </button>
-        </div>
+        <input
+          type="text"
+          value={mapUrl}
+          onChange={handleUrlChange}
+          placeholder="네이버 지도 URL을 붙여넣으세요 (축약 URL도 가능)"
+          className="search-input"
+        />
         {error && <p className="error-message">{error}</p>}
       </div>
     </div>
@@ -107,27 +109,51 @@ const RestaurantMap = ({ restaurants, height = '400px' }) => {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
 
+  // 숨고 오피스 위치 (테헤란로 427)
+  const DEFAULT_CENTER = {
+    lat: 37.5065,
+    lng: 127.0536
+  };
+
   useEffect(() => {
     // 네이버 맵 스크립트가 로드되었는지 확인
     const initializeMap = () => {
       if (!window.naver || !window.naver.maps || !mapRef.current) {
-        // 1초 후에 다시 시도
         setTimeout(initializeMap, 1000);
         return;
       }
 
-      // 지도 초기화
+      // 지도 초기화 시 기준점 설정
       const map = new window.naver.maps.Map(mapRef.current, {
-        center: new window.naver.maps.LatLng(37.5666103, 126.9783882), // 서울 시청 기준
-        zoom: 13
+        center: new window.naver.maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng),
+        zoom: 15  // 줌 레벨도 조정
       });
 
       // 기존 마커 제거
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current = [];
 
+      // 기준점 마커 추가
+      new window.naver.maps.Marker({
+        position: new window.naver.maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng),
+        map: map,
+        icon: {
+          content: `<div style="
+            background: #FF4757;
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          ">숨고 오피스</div>`,
+          anchor: new window.naver.maps.Point(60, 15)
+        }
+      });
+
       // 모든 레스토랑의 좌표를 포함하는 경계 설정
       const bounds = new window.naver.maps.LatLngBounds();
+      bounds.extend(new window.naver.maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng));
 
       // 레스토랑 마커 생성
       restaurants.forEach(restaurant => {
@@ -141,7 +167,6 @@ const RestaurantMap = ({ restaurants, height = '400px' }) => {
         const marker = new window.naver.maps.Marker({
           position,
           map,
-          title: restaurant.name,
           icon: {
             content: `<div style="
               background: var(--primary);

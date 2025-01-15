@@ -10,49 +10,49 @@
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
     --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.08);
     --transition: all 0.2s ease;
-   }
-   
-   body {
+  }
+  
+  body {
     font-family: 'Pretendard', -apple-system, system-ui, sans-serif;
     background: var(--background);
     color: var(--text-primary);
     line-height: 1.5;
-   }
-   
-   .admin-dashboard {
+  }
+  
+  .admin-dashboard {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
-   }
-   
-   /* 헤더 */
-   .dashboard-header {
+  }
+  
+  /* 헤더 */
+  .dashboard-header {
     text-align: center;
     margin-bottom: 3rem;
-   }
-   
-   .dashboard-header h1 {
+  }
+  
+  .dashboard-header h1 {
     font-size: 2.5rem;
     font-weight: 800;
     color: var(--primary);
     margin: 0;
-   }
-   
-   .header-subtitle {
+  }
+  
+  .header-subtitle {
     font-size: 1.1rem;
     color: var(--text-secondary);
     margin-top: 0.5rem;
-   }
-   
-   /* 카테고리 카드 */
-   .stats-cards {
+  }
+  
+  /* 카테고리 카드 */
+  .stats-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 1.5rem;
     margin-bottom: 3rem;
-   }
-   
-   .stat-card {
+  }
+  
+  .stat-card {
     background: white;
     border-radius: 16px;
     padding: 1.5rem;
@@ -63,41 +63,41 @@
     display: flex;
     align-items: center;
     justify-content: center;
-   }
-   
-   .stat-card:hover {
+  }
+  
+  .stat-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
-   }
-   
-   .stat-card-content {
+  }
+  
+  .stat-card-content {
     text-align: center;
-   }
-   
-   .stat-card-title {
+  }
+  
+  .stat-card-title {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 0.75rem;
-   }
-   
-   .stat-card-value {
+  }
+  
+  .stat-card-value {
     font-size: 2.5rem;
     font-weight: 700;
     color: var(--primary);
     margin: 0;
-   }
-   
-   .stat-card-label {
+  }
+  
+  .stat-card-label {
     display: block;
     font-size: 0.9rem;
     color: var(--text-secondary);
     margin-top: 0.5rem;
     position: relative;
     padding-top: 0.5rem;
-   }
-   
-   .stat-card-label::before {
+  }
+  
+  .stat-card-label::before {
     content: '';
     position: absolute;
     top: 0;
@@ -107,47 +107,47 @@
     height: 2px;
     background: var(--primary);
     opacity: 0.3;
-   }
-   
-   /* 맛집 리스트 섹션 */
-   .restaurants-section {
+  }
+  
+  /* 맛집 리스트 섹션 */
+  .restaurants-section {
     background: white;
     border-radius: 24px;
     padding: 2.5rem;
     box-shadow: var(--shadow-sm);
-   }
-   
-   .restaurants-header {
+  }
+  
+  .restaurants-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid var(--border);
-   }
-   
-   .header-content {
+  }
+  
+  .header-content {
     text-align: left;
-   }
-   
-   .header-content h2 {
+  }
+  
+  .header-content h2 {
     font-size: 1.75rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
-   }
-   
-   .header-content p {
+  }
+  
+  .header-content p {
     color: var(--text-secondary);
     margin: 0;
-   }
-   
-   /* 검색 & 추가 버튼 */
-   .header-actions {
+  }
+  
+  /* 검색 & 추가 버튼 */
+  .header-actions {
     display: flex;
     gap: 1rem;
-   }
-   
-   .search-input {
+  }
+  
+  .search-input {
     width: 250px;
     height: 48px;
     padding: 0 1.25rem;
@@ -155,19 +155,19 @@
     border-radius: 12px;
     font-size: 1rem;
     transition: var(--transition);
-   }
-   
-   .search-input:hover {
+  }
+  
+  .search-input:hover {
     border-color: var(--border-hover);
-   }
-   
-   .search-input:focus {
+  }
+  
+  .search-input:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(105, 59, 242, 0.1);
-   }
-   
-   .add-restaurant-btn {
+  }
+  
+  .add-restaurant-btn {
     height: 48px;
     padding: 0 1.5rem;
     background: var(--primary);
@@ -178,28 +178,27 @@
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
-   }
-   
-   .add-restaurant-btn:hover {
+  }
+  
+  .add-restaurant-btn:hover {
     background: var(--primary-hover);
     transform: translateY(-1px);
-   }
-   
-   /* 테이블 스타일 */
-   .restaurants-table {
+  }
+  
+  /* 테이블 스타일 */
+  .restaurants-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
   }
   
-  /* 테이블 헤더 */
   .restaurants-table th {
     padding: 1rem;
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-secondary);
     text-align: left;
-    border-right: 1px solid rgba(229, 232, 235, 0.5); /* 희미한 세로선 추가 */
+    border-right: 1px solid rgba(229, 232, 235, 0.5);
     border-bottom: 1px solid var(--border);
   }
   
@@ -207,10 +206,9 @@
     border-right: none;
   }
   
-  /* 테이블 셀 */
   .restaurants-table td {
     padding: 1rem;
-    border-right: 1px solid rgba(229, 232, 235, 0.5); /* 희미한 세로선 추가 */
+    border-right: 1px solid rgba(229, 232, 235, 0.5);
     border-bottom: 1px solid var(--border);
   }
   
@@ -219,21 +217,22 @@
     width: 160px;
     border-right: none;
   }
-   
-   .restaurants-table tr:hover td {
+  
+  .restaurants-table tr:hover td {
     background: var(--background);
-   }
-   
-   .action-buttons {
+  }
+  
+  .action-buttons {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 12px; /* 버튼 간격 조정 */
-   }
-   
-   .edit-btn, 
-   .delete-btn {
-    flex: 0 0 auto; /* 버튼 크기 고정 */
+    gap: 12px;
+  }
+  
+  /* 수정/삭제 버튼 */
+  .edit-btn, 
+  .delete-btn {
+    flex: 0 0 auto;
     padding: 6px 16px;
     min-width: 64px;
     height: 32px;
@@ -247,28 +246,28 @@
     align-items: center;
     justify-content: center;
     margin: 0;
-   }  
-   
-   .edit-btn {
-    background: rgba(105, 59, 242, 0.1);  /* 보라색 계열로 변경 */
+  }
+  
+  .edit-btn {
+    background: rgba(105, 59, 242, 0.1);
     color: var(--primary);
-   }
-   
-   .edit-btn:hover {
+  }
+  
+  .edit-btn:hover {
     background: rgba(105, 59, 242, 0.15);
-   }
-   
-   .delete-btn {
-    background: rgba(255, 71, 87, 0.1);  /* 빨간색을 더 부드럽게 */
+  }
+  
+  .delete-btn {
+    background: rgba(255, 71, 87, 0.1);
     color: #FF4757;
-   }
-   
-   .delete-btn:hover {
+  }
+  
+  .delete-btn:hover {
     background: rgba(255, 71, 87, 0.15);
-   }
-   
-   /* 다이얼로그 */
-   .dialog-overlay {
+  }
+  
+  /* 다이얼로그 */
+  .dialog-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.4);
@@ -277,34 +276,33 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
-   }
-   
-   .dialog-content {
+  }
+  
+  .dialog-content {
     width: 480px;
-    max-width: 480px;  /* 최대 너비 제한 */
+    max-width: 480px;
     background: white;
     border-radius: 24px;
     padding: 2.5rem;
     position: relative;
-    overflow: hidden;  /* 내용이 넘치지 않도록 */
+    overflow: hidden;
   }
-
-  /* 폼 필드 컨테이너 */
-    .dialog-form {
-    width: 100%;  /* 부모 요소의 너비에 맞춤 */
+  
+  .dialog-form {
+    width: 100%;
   }
-   
-   .dialog-header {
+  
+  .dialog-header {
     margin-bottom: 2rem;
-   }
-   
-   .dialog-header h2 {
+  }
+  
+  .dialog-header h2 {
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
-   }
-   
-   .close-btn {
+  }
+  
+  .close-btn {
     position: absolute;
     top: 1.5rem;
     right: 1.5rem;
@@ -319,259 +317,84 @@
     display: flex;
     align-items: center;
     justify-content: center;
-   }
-   
-   .form-field {
-    margin-bottom: 1.5rem;
-    width: 100%;  /* 컨테이너의 전체 너비 사용 */
   }
-   
-   .form-field label {
+  
+  /* 폼 필드 */
+  .form-field {
+    margin-bottom: 1.5rem;
+    width: 100%;
+  }
+  
+  .form-field label {
     display: block;
     font-size: 0.95rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
-   }
-   
-   .form-field input,
-    .form-field select,
-    .form-field textarea {
+  }
+  
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
     width: 100%;
-    box-sizing: border-box;  /* padding과 border를 width에 포함 */
+    box-sizing: border-box;
     padding: 0.75rem 1rem;
     border: 1px solid var(--border);
     border-radius: 12px;
     font-size: 1rem;
     transition: var(--transition);
-    }
-    
-   .form-field select {
+  }
+  
+  .form-field select {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%238B95A1' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 1rem center;
-    padding-right: 2.5rem; /* 화살표 아이콘 여백 */
-   }
-   
-   .form-field textarea {
+    padding-right: 2.5rem;
+  }
+  
+  .form-field textarea {
     height: 120px;
     resize: vertical;
-   }
-   
-   .form-field input:focus,
-   .form-field select:focus,
-   .form-field textarea:focus {
+  }
+  
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(105, 59, 242, 0.1);
-   }
-   
-   /* 평점 선택 */
-   .rating-selector {
+  }
+  
+  /* 평점 선택 */
+  .rating-selector {
     display: flex;
     gap: 0.75rem;
-   }
-   
-   .rating-btn {
+  }
+  
+  .rating-btn {
     font-size: 1.5rem;
     padding: 0.5rem;
     background: none;
     border: none;
     cursor: pointer;
-    opacity: 0.15;  /* 기본 상태를 더 흐리게 */
+    opacity: 0.15;
     transition: var(--transition);
-   }
-   
-   .rating-btn.active {
+  }
+  
+  .rating-btn.active {
     opacity: 1;
     color: #FFB800;
-   }
-   
-   .rating-btn:hover {
+  }
+  
+  .rating-btn:hover {
     transform: scale(1.1);
-   }
-   
-   /* 저장 버튼 */
-   .save-btn {
-    width: 100%;
-    box-sizing: border-box;  /* padding과 border를 width에 포함 */
-    height: 52px;
-    margin-top: 1.5rem;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
   }
-   
-   .save-btn:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-   }
-   
-   /* 카테고리 다이얼로그 테이블 */
-   .category-dialog {
-    max-width: 1000px !important; /* 더 넓게 조정 */
-    width: 90%; /* 반응형 대응 */
-   }
-   
-   .category-dialog .dialog-content {
-    width: 100%;
-    max-width: none;
-   }
-   
-   .category-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-top: 1.5rem;
-   }
-   
-   .category-table th,
-   .category-table td {
-    padding: 1.25rem 1rem; /* 패딩 살짝 늘림 */
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-   }
-   
-   /* 반응형 디자인 */
-   @media (max-width: 768px) {
-    .admin-dashboard {
-      padding: 1rem;
-    }
-   
-    .restaurants-header {
-      flex-direction: column;
-      gap: 1rem;
-    }
-   
-    .header-actions {
-      width: 100%;
-      flex-direction: column;
-    }
-   
-    .search-input {
-      width: 100%;
-    }
-   
-    .add-restaurant-btn {
-      width: 100%;
-    }
-   }
-
-   /* App.css에 추가할 스타일 */
-
-/* 지도 컨테이너 스타일 */
-.map-container {
+  
+  /* 지도 컨테이너 */
+  .map-container {
     border-radius: 16px;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
-  }
-  
-  /* URL 검색 입력 그룹 */
-  .search-input-group {
-    display: flex;
-    gap: 1rem;
-  }
-  
-  .search-input-group .search-input {
-    flex: 1;
-  }
-  
-  .search-btn {
-    padding: 0 1.5rem;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-  }
-  
-  .search-btn:hover:not(:disabled) {
-    background: var(--primary-hover);
-  }
-  
-  .search-btn:disabled {
-    background: var(--text-secondary);
-    cursor: not-allowed;
-  }
-  
-  .error-message {
-    color: #FF4757;
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-  }
-  
-  /* 비활성화된 입력 필드 스타일 */
-  .disabled-input {
-    background-color: var(--background);
-    color: var(--text-secondary);
-  }
-  
-  /* 카테고리 다이얼로그 크기 조정 */
-  .category-dialog {
-    width: 90%;
-    max-width: 1000px;
-    height: 80vh;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .category-dialog .dialog-content {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .category-dialog .category-table {
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  /* App.css 파일 맨 아래에 추가할 스타일 */
-
-/* 지도 컨테이너 스타일 */
-.map-container {
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-  }
-  
-  /* 검색 입력 그룹 */
-  .search-input-group {
-    display: flex;
-    gap: 1rem;
-  }
-  
-  .search-input-group .search-input {
-    flex: 1;
-  }
-  
-  .search-btn {
-    padding: 0 1.5rem;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-  }
-  
-  .search-btn:hover:not(:disabled) {
-    background: var(--primary-hover);
-  }
-  
-  .search-btn:disabled {
-    background: var(--text-secondary);
-    cursor: not-allowed;
   }
   
   /* 에러 메시지 */
@@ -581,43 +404,23 @@
     margin-top: 0.5rem;
   }
   
-  /* 입력 필드 비활성화 스타일 */
+  /* 비활성화된 입력 필드 */
   .disabled-input {
     background-color: var(--background);
     color: var(--text-secondary);
     cursor: not-allowed;
   }
   
-  /* 단계별 폼 버튼 스타일 */
+  /* 단계별 폼 버튼 */
   .form-actions {
     display: flex;
     gap: 1rem;
     margin-top: 1.5rem;
-  }
-  
-  .next-btn {
     width: 100%;
-    height: 52px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
   }
   
-  .next-btn:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-  }
-  
-  .back-btn {
-    padding: 0 1.5rem;
+  .form-actions button {
     height: 52px;
-    background: var(--background);
-    color: var(--text-primary);
     border: none;
     border-radius: 12px;
     font-size: 1rem;
@@ -625,34 +428,81 @@
     cursor: pointer;
     transition: var(--transition);
     flex: 1;
+  }
+  
+  .next-btn,
+  .save-btn {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .next-btn:hover,
+  .save-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+  }
+  
+  .back-btn {
+    background: var(--background);
+    color: var(--text-primary);
   }
   
   .back-btn:hover {
     background: var(--border);
   }
   
-  /* 2단계 버튼 레이아웃 */
-  .form-actions .back-btn,
-  .form-actions .save-btn {
-    flex: 1;
-  }
-  
-  /* 카테고리 다이얼로그 크기 조정 */
+  /* 카테고리 다이얼로그 */
   .category-dialog {
     width: 90%;
     max-width: 1000px;
     height: 80vh;
-    display: flex;
-    flex-direction: column;
   }
   
   .category-dialog .dialog-content {
     height: 100%;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: none;
   }
   
-  .category-dialog .category-table {
+  .category-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 1.5rem;
     flex: 1;
     overflow-y: auto;
+  }
+  
+  .category-table th,
+  .category-table td {
+    padding: 1.25rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  /* 반응형 디자인 */
+  @media (max-width: 768px) {
+    .admin-dashboard {
+      padding: 1rem;
+    }
+  
+    .restaurants-header {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  
+    .header-actions {
+      width: 100%;
+      flex-direction: column;
+    }
+  
+    .search-input {
+      width: 100%;
+    }
+  
+    .add-restaurant-btn {
+      width: 100%;
+    }
   }
