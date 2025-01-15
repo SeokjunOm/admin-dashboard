@@ -63,16 +63,9 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
           return;
         }
   
-        // 테스트용 임시 데이터 (실제로는 네이버 API에서 가져와야 함)
-        const placeInfo = {
-          name: "테스트 식당",
-          address: "서울시 강남구 테헤란로 133",
-          coordinates: {
-            lat: 37.4987,
-            lng: 127.0297
-          }
-        };
-  
+        // 네이버 API에서 장소 정보 가져오기
+        const placeInfo = await getPlaceInfoFromNaverAPI(placeId);
+
         // Mock API에 데이터 저장
         const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata', {
           method: 'POST',
@@ -118,6 +111,41 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
       </div>
     </div>
   );
+};
+
+// 네이버 API를 통해 장소 정보를 가져오는 함수
+const getPlaceInfoFromNaverAPI = async (placeId) => {
+  const apiUrl = `https://openapi.naver.com/v1/search/local.json?query=${placeId}&display=1`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'X-Naver-Client-Id': '1a3n3xh0o8', // 환경변수에서 API 키를 불러옵니다.
+        'X-Naver-Client-Secret': '0m69VrcmGvLnSZRh6ldFfgVHGb51AARomJH8ULoR' // 환경변수에서 Client Secret을 불러옵니다.
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('네이버 API 호출에 실패했습니다');
+    }
+
+    const data = await response.json();
+    const placeInfo = {
+      name: data.items[0].title,
+      address: data.items[0].address,
+      coordinates: {
+        lat: parseFloat(data.items[0].mapx),
+        lng: parseFloat(data.items[0].mapy)
+      }
+    };
+
+    return placeInfo;
+
+  } catch (err) {
+    console.error('API 호출 에러:', err);
+    throw new Error('장소 정보를 가져오는 중 에러가 발생했습니다');
+  }
 };
 
 // 지도에 마커를 표시하는 컴포넌트

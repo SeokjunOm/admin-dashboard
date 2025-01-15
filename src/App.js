@@ -40,7 +40,7 @@ useEffect(() => {
   if (addFormStep === 2) {
     const fetchTempPlaceData = async () => {
       try {
-        const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/temp-place');
+        const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata');
         if (!response.ok) throw new Error('데이터 로딩 실패');
         const data = await response.json();
         
@@ -330,13 +330,13 @@ useEffect(() => {
 
                   <button 
                     className="next-btn" 
-                    onClick={() => {
-                      if (!newRestaurant.link) {
-                        alert('네이버 지도 URL을 입력하고 검색해주세요.');
-                        return;
-                      }
-                      setAddFormStep(2);
-                    }}
+                    // onClick={() => {
+                    //   // if (!newRestaurant.link) {
+                    //   //   alert('네이버 지도 URL을 입력하고 검색해주세요.');
+                    //   //   return;
+                    //   // }
+                    //   setAddFormStep(2);
+                    // }}
                   >
                     다음 단계
                   </button>
