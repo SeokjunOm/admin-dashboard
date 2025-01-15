@@ -1,9 +1,10 @@
 // App.js
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { NaverMapSearch, RestaurantMap } from './components/NaverMapComponents.js';
 
 const SHARERS = ['아나킨', '퓨리오사', '베일리', '셀리나', '엘레나', '제이든', '루트', '요타', '벨라'];
-const CATEGORIES = ['한식', '중식', '일식', '양식', '카페', '분식', '기타'];
+const CATEGORIES = ['한식', '중식', '일식', '양식', '카페', '분식', '아시아','기타'];
 const RATINGS = [1, 2, 3, 4, 5];
 const API_BASE_URL = 'https://67866aa9f80b78923aa6bee6.mockapi.io/restaurants';
 
@@ -24,7 +25,9 @@ function App() {
     category: CATEGORIES[0],
     rating: 0,
     comment: '',
-    link: ''
+    link: '',
+    address: '',      // 추가
+    coordinates: null // 추가: { lat: number, lng: number }
   });
 
   useEffect(() => {
@@ -112,7 +115,9 @@ function App() {
       category: CATEGORIES[0],
       rating: 0,
       comment: '',
-      link: ''
+      link: '',
+      address: '',
+      coordinates: null
     });
   };
 
@@ -193,6 +198,11 @@ function App() {
           </div>
         </div>
 
+        {/* 지도 추가 */}
+        <div className="map-container" style={{ marginBottom: '2rem' }}>
+          <RestaurantMap restaurants={filteredRestaurants} />
+        </div>
+
         <table className="restaurants-table">
           <thead>
             <tr>
@@ -251,6 +261,19 @@ function App() {
               <button className="close-btn" onClick={() => setIsAddDialogOpen(false)}>✕</button>
             </div>
             <div className="dialog-form">
+              {/* 네이버 지도 URL 입력 및 검색 컴포넌트 추가 */}
+              <NaverMapSearch 
+                onPlaceSelect={(placeInfo) => {
+                  setNewRestaurant(prev => ({
+                    ...prev,
+                    name: placeInfo.name,
+                    address: placeInfo.address,
+                    rating: placeInfo.rating,
+                    coordinates: placeInfo.coordinates
+                  }));
+                }}
+              />
+
               <div className="form-field">
                 <label>가게명</label>
                 <input
@@ -263,6 +286,17 @@ function App() {
                   placeholder="가게 이름을 입력해주세요"
                 />
               </div>
+
+              <div className="form-field">
+                <label>주소</label>
+                <input
+                  type="text"
+                  value={newRestaurant.address}
+                  disabled
+                  className="disabled-input"
+                />
+              </div>
+
               <div className="form-field">
                 <label>공유자</label>
                 <select
@@ -277,6 +311,7 @@ function App() {
                   ))}
                 </select>
               </div>
+
               <div className="form-field">
                 <label>카테고리</label>
                 <select
@@ -291,6 +326,7 @@ function App() {
                   ))}
                 </select>
               </div>
+
               <div className="form-field">
                 <label>평점</label>
                 <div className="rating-selector">
@@ -306,6 +342,7 @@ function App() {
                   ))}
                 </div>
               </div>
+
               <div className="form-field">
                 <label>코멘트</label>
                 <textarea
@@ -317,6 +354,7 @@ function App() {
                   placeholder="맛집에 대한 코멘트를 입력해주세요"
                 />
               </div>
+
               <div className="form-field">
                 <label>링크</label>
                 <input
@@ -329,6 +367,7 @@ function App() {
                   placeholder="네이버 지도 URL을 입력해주세요"
                 />
               </div>
+
               <button className="save-btn" onClick={handleAddRestaurant}>
                 저장하기
               </button>
@@ -370,6 +409,15 @@ function App() {
               <h2>{selectedCategory} 맛집 목록</h2>
               <button className="close-btn" onClick={() => setIsCategoryDialogOpen(false)}>✕</button>
             </div>
+
+            {/* 지도 추가 */}
+            <div className="map-container" style={{ marginBottom: '2rem' }}>
+              <RestaurantMap 
+                restaurants={getCategoryRestaurants(selectedCategory)}
+                height="300px"
+              />
+            </div>
+
             <table className="category-table">
               <thead>
                 <tr>
