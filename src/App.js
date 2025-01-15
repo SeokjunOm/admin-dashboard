@@ -35,6 +35,33 @@ function App() {
     fetchRestaurants();
   }, []);
 
+  // App.js의 addFormStep 상태가 변경될 때 데이터를 불러오는 로직 추가
+useEffect(() => {
+  if (addFormStep === 2) {
+    const fetchTempPlaceData = async () => {
+      try {
+        const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/temp-place');
+        if (!response.ok) throw new Error('데이터 로딩 실패');
+        const data = await response.json();
+        
+        // 가장 최근 데이터 사용
+        const latestData = data[data.length - 1];
+        
+        setNewRestaurant(prev => ({
+          ...prev,
+          name: latestData.name,
+          address: latestData.address,
+          coordinates: latestData.coordinates
+        }));
+      } catch (err) {
+        console.error('데이터 로딩 실패:', err);
+      }
+    };
+
+    fetchTempPlaceData();
+  }
+}, [addFormStep]);
+
   const fetchRestaurants = async () => {
     try {
       setLoading(true);

@@ -62,23 +62,38 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
           setError('올바른 네이버 지도 URL이 아닙니다');
           return;
         }
-
-        // 테스트용 더미 데이터 (실제 구현 시 API로 대체)
+  
+        // 테스트용 임시 데이터 (실제로는 네이버 API에서 가져와야 함)
         const placeInfo = {
           name: "테스트 식당",
           address: "서울시 강남구 테헤란로 133",
-          rating: 4,
           coordinates: {
             lat: 37.4987,
             lng: 127.0297
           }
         };
-
+  
+        // Mock API에 데이터 저장
+        const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: placeInfo.name,
+            address: placeInfo.address,
+            coordinates: placeInfo.coordinates
+          })
+        });
+  
+        if (!response.ok) throw new Error('데이터 저장에 실패했습니다');
+        const savedData = await response.json();
+        
         onPlaceSelect({
-          ...placeInfo,
+          name: savedData.name,
+          address: savedData.address,
+          coordinates: savedData.coordinates,
           link: newUrl
         });
-
+  
       } catch (err) {
         console.error('API 호출 에러:', err);
         setError('장소 정보를 가져오는데 실패했습니다');
@@ -113,8 +128,8 @@ const RestaurantMap = ({ restaurants, height = '400px' }) => {
 
   // 숨고 오피스 위치 (테헤란로 133)
   const DEFAULT_CENTER = {
-    lat: 37.4987,
-    lng: 127.0297
+    lat: 37.5001,
+    lng: 127.0335
   };
 
   useEffect(() => {

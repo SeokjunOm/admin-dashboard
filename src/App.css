@@ -416,6 +416,7 @@
     display: flex;
     gap: 1rem;
     margin-top: 1.5rem;
+    width: 100%;
   }
   
   .form-actions button {
@@ -429,9 +430,16 @@
   }
   
   .next-btn {
-    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
     background: var(--primary);
     color: white;
+    width: 100%;
   }
   
   .next-btn:hover {
@@ -440,9 +448,16 @@
   }
   
   .form-actions .back-btn,
-  .form-actions .save-btn {
-    flex: 1;
-  }
+.form-actions .save-btn {
+  flex: 1;
+  height: 52px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
   
   .save-btn {
     background: var(--primary);
