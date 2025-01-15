@@ -533,3 +533,126 @@
     flex: 1;
     overflow-y: auto;
   }
+
+  /* App.css 파일 맨 아래에 추가할 스타일 */
+
+/* 지도 컨테이너 스타일 */
+.map-container {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  /* 검색 입력 그룹 */
+  .search-input-group {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .search-input-group .search-input {
+    flex: 1;
+  }
+  
+  .search-btn {
+    padding: 0 1.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .search-btn:hover:not(:disabled) {
+    background: var(--primary-hover);
+  }
+  
+  .search-btn:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+  }
+  
+  /* 에러 메시지 */
+  .error-message {
+    color: #FF4757;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+  
+  /* 입력 필드 비활성화 스타일 */
+  .disabled-input {
+    background-color: var(--background);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+  }
+  
+  /* 단계별 폼 버튼 스타일 */
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .next-btn {
+    width: 100%;
+    height: 52px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .next-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+  }
+  
+  .back-btn {
+    padding: 0 1.5rem;
+    height: 52px;
+    background: var(--background);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    flex: 1;
+  }
+  
+  .back-btn:hover {
+    background: var(--border);
+  }
+  
+  /* 2단계 버튼 레이아웃 */
+  .form-actions .back-btn,
+  .form-actions .save-btn {
+    flex: 1;
+  }
+  
+  /* 카테고리 다이얼로그 크기 조정 */
+  .category-dialog {
+    width: 90%;
+    max-width: 1000px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .category-dialog .dialog-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .category-dialog .category-table {
+    flex: 1;
+    overflow-y: auto;
+  }
