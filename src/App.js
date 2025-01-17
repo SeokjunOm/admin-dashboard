@@ -31,10 +31,12 @@ function App() {
     coordinates: null
   });
 
+  // 초기 데이터 로딩
   useEffect(() => {
     fetchRestaurants();
   }, []);
 
+  // 2단계로 넘어갈 때 임시 저장된 장소 데이터 로딩
   useEffect(() => {
     if (addFormStep === 2) {
       const fetchTempPlaceData = async () => {
@@ -48,9 +50,10 @@ function App() {
           
           setNewRestaurant(prev => ({
             ...prev,
-            name: latestData.name,
-            address: latestData.address,
-            coordinates: latestData.coordinates
+            name: latestData.name || '',
+            address: latestData.address || '',
+            coordinates: latestData.coordinates || null,
+            link: latestData.link || ''
           }));
         } catch (err) {
           console.error('데이터 로딩 실패:', err);
@@ -61,6 +64,7 @@ function App() {
     }
   }, [addFormStep]);
 
+  // 전체 맛집 목록 가져오기
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
@@ -75,6 +79,7 @@ function App() {
     }
   };
 
+  // 새로운 맛집 추가
   const handleAddRestaurant = async () => {
     try {
       if (!newRestaurant.name || !newRestaurant.address) {
@@ -100,6 +105,7 @@ function App() {
     }
   };
 
+  // 맛집 정보 수정
   const handleUpdateRestaurant = async () => {
     try {
       if (!editingRestaurant?.id) return;
@@ -123,6 +129,7 @@ function App() {
     }
   };
 
+  // 맛집 삭제
   const handleDeleteRestaurant = async (id) => {
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
 
@@ -135,6 +142,7 @@ function App() {
     }
   };
 
+  // 폼 초기화
   const resetForm = () => {
     setNewRestaurant({
       name: '',
@@ -149,6 +157,7 @@ function App() {
     setAddFormStep(1);
   };
 
+  // 카테고리별 통계
   const getCategoryStats = () => {
     const stats = restaurants.reduce((acc, restaurant) => {
       const category = restaurant.category || '미분류';
@@ -162,10 +171,12 @@ function App() {
     }));
   };
 
+  // 카테고리별 맛집 목록
   const getCategoryRestaurants = (category) => {
     return restaurants.filter(restaurant => restaurant.category === category);
   };
 
+  // 검색 필터링
   const filteredRestaurants = restaurants.filter(restaurant => {
     const query = searchQuery.toLowerCase();
     return (
@@ -280,6 +291,7 @@ function App() {
         </table>
       </section>
 
+      {/* 맛집 추가 다이얼로그 */}
       {isAddDialogOpen && (
         <div className="dialog-overlay" onClick={() => {
           setIsAddDialogOpen(false);
@@ -415,6 +427,7 @@ function App() {
         </div>
       )}
 
+      {/* 수정 다이얼로그 */}
       {isEditDialogOpen && editingRestaurant && (
         <div className="dialog-overlay" onClick={() => setIsEditDialogOpen(false)}>
           <div className="dialog-content" onClick={e => e.stopPropagation()}>
@@ -441,6 +454,7 @@ function App() {
         </div>
       )}
 
+      {/* 카테고리별 맛집 목록 다이얼로그 */}
       {isCategoryDialogOpen && selectedCategory && (
         <div className="dialog-overlay" onClick={() => setIsCategoryDialogOpen(false)}>
           <div className="dialog-content category-dialog" onClick={e => e.stopPropagation()}>

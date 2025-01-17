@@ -222,50 +222,6 @@ body {
   background: var(--background);
 }
 
-.action-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-}
-
-/* 수정/삭제 버튼 */
-.edit-btn, 
-.delete-btn {
-  flex: 0 0 auto;
-  padding: 6px 16px;
-  min-width: 64px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-}
-
-.edit-btn {
-  background: rgba(105, 59, 242, 0.1);
-  color: var(--primary);
-}
-
-.edit-btn:hover {
-  background: rgba(105, 59, 242, 0.15);
-}
-
-.delete-btn {
-  background: rgba(255, 71, 87, 0.1);
-  color: #FF4757;
-}
-
-.delete-btn:hover {
-  background: rgba(255, 71, 87, 0.15);
-}
-
 /* 다이얼로그 */
 .dialog-overlay {
   position: fixed;
@@ -286,10 +242,6 @@ body {
   padding: 2.5rem;
   position: relative;
   overflow: hidden;
-}
-
-.dialog-form {
-  width: 100%;
 }
 
 .dialog-header {
@@ -397,16 +349,15 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* 에러 메시지 */
-.error-message {
-  color: #FF4757;
+/* 상태 메시지 */
+.loading-message {
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
 
-/* 로딩 메시지 */
-.loading-message {
-  color: var(--text-secondary);
+.error-message {
+  color: #FF4757;
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
@@ -418,35 +369,19 @@ body {
   cursor: not-allowed;
 }
 
-/* 폼 액션 버튼 */
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  width: 100%;
-}
-
-.form-actions button {
-  height: 52px;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
+/* 다음 단계 & 폼 액션 버튼 */
 .next-btn {
+  width: 100%;
   height: 52px;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
+  margin-top: 1rem;
   background: var(--primary);
   color: white;
-  width: 100%;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
 }
 
 .next-btn:hover {
@@ -454,8 +389,19 @@ body {
   transform: translateY(-1px);
 }
 
-.form-actions .back-btn,
-.form-actions .save-btn {
+.next-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.form-actions button {
   flex: 1;
   height: 52px;
   border: none;
@@ -464,6 +410,15 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
+}
+
+.back-btn {
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+.back-btn:hover {
+  background: var(--border);
 }
 
 .save-btn {
@@ -476,43 +431,12 @@ body {
   transform: translateY(-1px);
 }
 
-.back-btn {
-  background: var(--background);
-  color: var(--text-primary);
-}
-
-.back-btn:hover {
-  background: var(--border);
-}
-
 /* 카테고리 다이얼로그 */
 .category-dialog {
   width: 90%;
   max-width: 1000px;
   height: 80vh;
   overflow-y: auto;
-}
-
-.category-dialog .dialog-content {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: none;
-}
-
-.category-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin-top: 1.5rem;
-}
-
-.category-table th,
-.category-table td {
-  padding: 1.25rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
 }
 
 /* 반응형 디자인 */
@@ -542,10 +466,5 @@ body {
   .dialog-content {
     width: 90%;
     padding: 1.5rem;
-  }
-
-  .category-dialog {
-    width: 95%;
-    height: 90vh;
   }
 }
