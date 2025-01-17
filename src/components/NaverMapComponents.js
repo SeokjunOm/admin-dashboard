@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 // 네이버 지도 검색 컴포넌트
-// src/components/NaverMapComponents.js의 NaverMapSearch 컴포넌트 부분
 
 const NaverMapSearch = ({ onPlaceSelect }) => {
   const [mapUrl, setMapUrl] = useState('');
@@ -30,31 +29,35 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
         throw new Error('올바른 네이버 지도 URL이 아닙니다');
       }
 
-      // 2. 네이버 지도 API로 장소 검색
+      // 2. 네이버 지도 Places 서비스로 검색
+      const ps = new naver.maps.Service.Places();
+      
       const placeInfo = await new Promise((resolve, reject) => {
-        naver.maps.Service.geocode({
-          query: keyword
-        }, function(status, response) {
-          if (status !== naver.maps.Service.Status.OK) {
-            reject(new Error('장소 검색에 실패했습니다'));
-            return;
-          }
-
-          if (!response.v2.addresses || response.v2.addresses.length === 0) {
-            reject(new Error('주소를 찾을 수 없습니다'));
-            return;
-          }
-
-          const result = response.v2.addresses[0];
-          resolve({
-            name: keyword,
-            address: result.roadAddress || result.jibunAddress,
-            coordinates: {
-              lat: parseFloat(result.y),
-              lng: parseFloat(result.x)
+        ps.search(
+          { query: keyword }, 
+          function(status, response) {
+            if (status !== naver.maps.Service.Status.OK) {
+              reject(new Error('장소 검색에 실패했습니다'));
+              return;
             }
-          });
-        });
+
+            const places = response.places;
+            if (!places || places.length === 0) {
+              reject(new Error('장소를 찾을 수 없습니다'));
+              return;
+            }
+
+            const place = places[0];  // 첫 번째 검색 결과 사용
+            resolve({
+              name: place.name,
+              address: place.address,
+              coordinates: {
+                lat: parseFloat(place.y),
+                lng: parseFloat(place.x)
+              }
+            });
+          }
+        );
       });
 
       // 3. MockAPI에 데이터 저장
