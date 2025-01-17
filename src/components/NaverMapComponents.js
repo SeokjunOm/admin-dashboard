@@ -10,7 +10,11 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
   // URL에서 실제 장소 데이터 추출
   const getPlaceInfo = async (url) => {
     let searchQuery;
-    const geocoder = new naver.maps.Service.Geocoder();
+    naver.maps.Service.geocode({
+      query: decodeURIComponent(searchQuery)
+    }, function(status, response) {
+      // 결과 처리
+    });
 
     if (url.includes('naver.me')) {
       const response = await fetch(`https://cors-anywhere.herokuapp.com/${url}`);
