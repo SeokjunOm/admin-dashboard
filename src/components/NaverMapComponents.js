@@ -9,23 +9,6 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const searchPlace = async (query) => {
-    const response = await fetch('/api/v1/search/local.json', {
-      headers: {
-        'X-Naver-Client-Id': process.env.REACT_APP_NAVER_CLIENT_ID,
-        'X-Naver-Client-Secret': process.env.REACT_APP_NAVER_CLIENT_SECRET
-      },
-      params: {
-        query: query,
-        display: 1
-      }
-    });
-
-    if (!response.ok) throw new Error('검색에 실패했습니다');
-    const data = await response.json();
-    return data.items[0];  // 첫 번째 검색 결과 반환
-  };
-
   const handleSearch = async () => {
     if (!mapUrl) return;
     
@@ -33,32 +16,27 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
     setError(null);
 
     try {
-      let placeId;
-
-      // URL 처리
+      // 1. URL에서 키워드 추출
+      let keyword;
       if (mapUrl.includes('naver.me')) {
-        // 단축 URL의 경우 ID만 추출
-        placeId = mapUrl.split('/').pop();
+        const segments = mapUrl.split('/');
+        keyword = segments[segments.length - 1];
       } else if (mapUrl.includes('place/')) {
-        // 일반 URL의 경우 place ID 추출
-        const match = mapUrl.match(/place\/([^?]+)/);
-        placeId = match ? match[1] : null;
+        const match = mapUrl.match(/place\/([^?/]+)/);
+        keyword = match ? decodeURIComponent(match[1]) : null;
       }
 
-      if (!placeId) {
+      if (!keyword) {
         throw new Error('올바른 네이버 지도 URL이 아닙니다');
       }
 
-      // 1. 네이버 검색 API로 장소 정보 가져오기
-      const placeData = await searchPlace(placeId);
-      
-      // 2. 지오코딩으로 주소와 좌표 가져오기
-      const addressInfo = await new Promise((resolve, reject) => {
+      // 2. 네이버 지도 API로 장소 검색
+      const placeInfo = await new Promise((resolve, reject) => {
         naver.maps.Service.geocode({
-          query: placeData.address  // 검색 API에서 받은 주소로 검색
+          query: keyword
         }, function(status, response) {
-          if (status === naver.maps.Service.Status.ERROR) {
-            reject(new Error('주소 검색에 실패했습니다'));
+          if (status !== naver.maps.Service.Status.OK) {
+            reject(new Error('장소 검색에 실패했습니다'));
             return;
           }
 
@@ -67,24 +45,19 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
             return;
           }
 
-          const address = response.v2.addresses[0];
+          const result = response.v2.addresses[0];
           resolve({
-            address: address.roadAddress || address.jibunAddress,
+            name: keyword,
+            address: result.roadAddress || result.jibunAddress,
             coordinates: {
-              lat: parseFloat(address.y),
-              lng: parseFloat(address.x)
+              lat: parseFloat(result.y),
+              lng: parseFloat(result.x)
             }
           });
         });
       });
 
-      const placeInfo = {
-        name: placeData.title.replace(/<[^>]*>/g, ''),  // HTML 태그 제거
-        address: addressInfo.address,
-        coordinates: addressInfo.coordinates
-      };
-
-      // 3. MockAPI에 데이터 임시 저장
+      // 3. MockAPI에 데이터 저장
       const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
