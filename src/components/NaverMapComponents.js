@@ -1,98 +1,104 @@
 // src/components/NaverMapComponents.js
 import React, { useState, useEffect, useRef } from 'react';
 
-// 네이버 지도 URL에서 장소 ID를 추출하는 컴포넌트
 const NaverMapSearch = ({ onPlaceSelect }) => {
   const [mapUrl, setMapUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const extractPlaceId = async (url) => {
-    try {
-      // 축약 URL인 경우 (naver.me)
-      if (url.includes('naver.me')) {
-        try {
-          const response = await fetch(url);
-          const fullUrl = response.url;
-          return extractPlaceIdFromFullUrl(fullUrl);
-        } catch (error) {
-          // 축약 URL에서 직접 ID 추출 시도
-          const id = url.split('/').pop();
-          if (id && id.length > 0) {
-            return id;
-          }
-          console.error('축약 URL 처리 중 에러:', error);
-        }
-      }
-      
-      return extractPlaceIdFromFullUrl(url);
-    } catch (err) {
-      throw new Error('URL 처리 중 오류가 발생했습니다.');
-    }
-  };
-
-  const extractPlaceIdFromFullUrl = (url) => {
-    const patterns = [
-      /place(?:%2F|\/)([\d]+)/,
-      /entry\/place\/([\d]+)/,
-      /restaurant\/([\d]+)/,
-      /location\/([\d]+)/,
-      /(\d+)$/
-    ];
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) return match[1];
-    }
-    return null;
-  };
-
-  // URL 입력값이 변경될 때마다 실행되는 함수
   const handleUrlChange = async (e) => {
     const newUrl = e.target.value;
     setMapUrl(newUrl);
     
-    if (newUrl) {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        const placeId = await extractPlaceId(newUrl);
-        if (!placeId) {
-          setError('올바른 네이버 지도 URL이 아닙니다');
-          return;
-        }
-  
-        // 네이버 API에서 장소 정보 가져오기
-        const placeInfo = await getPlaceInfoFromNaverAPI(placeId);
+    if (!newUrl) return;
 
-        // Mock API에 데이터 저장
-        const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: placeInfo.name,
-            address: placeInfo.address,
-            coordinates: placeInfo.coordinates
-          })
-        });
-  
-        if (!response.ok) throw new Error('데이터 저장에 실패했습니다');
-        const savedData = await response.json();
-        
-        onPlaceSelect({
-          name: savedData.name,
-          address: savedData.address,
-          coordinates: savedData.coordinates,
-          link: newUrl
-        });
-  
-      } catch (err) {
-        console.error('API 호출 에러:', err);
-        setError('장소 정보를 가져오는데 실패했습니다');
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // 1. 네이버 지도 API를 통해 장소 정보 가져오기
+      const map = new window.naver.maps.Map('temp-map-div', {
+        center: new window.naver.maps.LatLng(37.5666805, 126.9784147),
+        zoom: 15,
+      });
+
+      const urlObj = new URL(newUrl);
+      const searchParams = new URLSearchParams(urlObj.search);
+      let address;
+      let placeId;
+      
+      if (newUrl.includes('naver.me')) {
+        // 단축 URL인 경우, 실제 URL로 리다이렉트
+        const response = await fetch(newUrl);
+        const redirectUrl = response.url;
+        placeId = redirectUrl.match(/place\/(\d+)/)?.[1];
+        if (!placeId) {
+          throw new Error('올바른 네이버 지도 URL이 아닙니다');
+        }
+        // 임시로 장소명과 주소를 설정 (실제로는 네이버 지도 API에서 가져와야 함)
+        address = placeId;
+      } else {
+        placeId = newUrl.match(/place\/(\d+)/)?.[1];
+        if (!placeId) {
+          throw new Error('올바른 네이버 지도 URL이 아닙니다');
+        }
+        address = placeId;
       }
+
+      if (!address) {
+        throw new Error('주소를 찾을 수 없습니다.');
+      }
+
+      // 2. 네이버 지도 Geocoding으로 좌표 얻기
+      const placeInfo = await new Promise((resolve, reject) => {
+        window.naver.maps.Service.geocode({
+          query: address
+        }, function(status, response) {
+          if (status !== window.naver.maps.Service.Status.OK) {
+            reject(new Error('주소 검색에 실패했습니다.'));
+            return;
+          }
+
+          const result = response.v2.addresses[0];
+          const name = address.split(' ')[0]; // 가게명 추출
+
+          resolve({
+            name: "테스트 식당", // 실제로는 API에서 가져온 이름을 사용
+            address: result.roadAddress || result.jibunAddress,
+            coordinates: {
+              lat: parseFloat(result.y),
+              lng: parseFloat(result.x)
+            }
+          });
+        });
+      });
+
+      // 3. MockAPI에 데이터 저장
+      const mockResponse = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(placeInfo)
+      });
+
+      if (!mockResponse.ok) {
+        throw new Error('데이터 저장에 실패했습니다');
+      }
+
+      const savedData = await mockResponse.json();
+      
+      // 4. 상위 컴포넌트에 데이터 전달
+      onPlaceSelect({
+        name: savedData.name,
+        address: savedData.address,
+        coordinates: savedData.coordinates,
+        link: newUrl
+      });
+
+    } catch (err) {
+      console.error('Error:', err);
+      setError(err.message || '장소 정보를 가져오는데 실패했습니다');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,49 +112,17 @@ const NaverMapSearch = ({ onPlaceSelect }) => {
           onChange={handleUrlChange}
           placeholder="네이버 지도 URL을 붙여넣으세요 (축약 URL도 가능)"
           className="search-input"
+          disabled={loading}
         />
+        {loading && <p className="loading-message">장소 정보를 가져오는 중...</p>}
         {error && <p className="error-message">{error}</p>}
       </div>
+      {/* 임시 지도 div - 화면에 보이지 않음 */}
+      <div id="temp-map-div" style={{ display: 'none' }}></div>
     </div>
   );
 };
 
-// 네이버 API를 통해 장소 정보를 가져오는 함수
-const getPlaceInfoFromNaverAPI = async (placeId) => {
-  const apiUrl = `https://openapi.naver.com/v1/search/local.json?query=${placeId}&display=1`;
-
-  try {
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'X-Naver-Client-Id': '1a3n3xh0o8', // 환경변수에서 API 키를 불러옵니다.
-        'X-Naver-Client-Secret': '0m69VrcmGvLnSZRh6ldFfgVHGb51AARomJH8ULoR' // 환경변수에서 Client Secret을 불러옵니다.
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('네이버 API 호출에 실패했습니다');
-    }
-
-    const data = await response.json();
-    const placeInfo = {
-      name: data.items[0].title,
-      address: data.items[0].address,
-      coordinates: {
-        lat: parseFloat(data.items[0].mapx),
-        lng: parseFloat(data.items[0].mapy)
-      }
-    };
-
-    return placeInfo;
-
-  } catch (err) {
-    console.error('API 호출 에러:', err);
-    throw new Error('장소 정보를 가져오는 중 에러가 발생했습니다');
-  }
-};
-
-// 지도에 마커를 표시하는 컴포넌트
 const RestaurantMap = ({ restaurants, height = '400px' }) => {
   const mapRef = useRef(null);
   const markersRef = useRef([]);

@@ -18,7 +18,7 @@ function App() {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [editingRestaurant, setEditingRestaurant] = useState(null);
-  const [addFormStep, setAddFormStep] = useState(1); // 추가: 폼 단계 상태
+  const [addFormStep, setAddFormStep] = useState(1);
 
   const [newRestaurant, setNewRestaurant] = useState({
     name: '',
@@ -35,32 +35,31 @@ function App() {
     fetchRestaurants();
   }, []);
 
-  // App.js의 addFormStep 상태가 변경될 때 데이터를 불러오는 로직 추가
-useEffect(() => {
-  if (addFormStep === 2) {
-    const fetchTempPlaceData = async () => {
-      try {
-        const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata');
-        if (!response.ok) throw new Error('데이터 로딩 실패');
-        const data = await response.json();
-        
-        // 가장 최근 데이터 사용
-        const latestData = data[data.length - 1];
-        
-        setNewRestaurant(prev => ({
-          ...prev,
-          name: latestData.name,
-          address: latestData.address,
-          coordinates: latestData.coordinates
-        }));
-      } catch (err) {
-        console.error('데이터 로딩 실패:', err);
-      }
-    };
+  useEffect(() => {
+    if (addFormStep === 2) {
+      const fetchTempPlaceData = async () => {
+        try {
+          const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata');
+          if (!response.ok) throw new Error('데이터 로딩 실패');
+          const data = await response.json();
+          
+          // 가장 최근 데이터 사용
+          const latestData = data[data.length - 1];
+          
+          setNewRestaurant(prev => ({
+            ...prev,
+            name: latestData.name,
+            address: latestData.address,
+            coordinates: latestData.coordinates
+          }));
+        } catch (err) {
+          console.error('데이터 로딩 실패:', err);
+        }
+      };
 
-    fetchTempPlaceData();
-  }
-}, [addFormStep]);
+      fetchTempPlaceData();
+    }
+  }, [addFormStep]);
 
   const fetchRestaurants = async () => {
     try {
@@ -78,8 +77,8 @@ useEffect(() => {
 
   const handleAddRestaurant = async () => {
     try {
-      if (!newRestaurant.name || !newRestaurant.link) {
-        alert('가게명과 링크는 필수 입력사항입니다');
+      if (!newRestaurant.name || !newRestaurant.address) {
+        alert('가게명과 주소는 필수 입력사항입니다');
         return;
       }
 
@@ -147,7 +146,7 @@ useEffect(() => {
       address: '',
       coordinates: null
     });
-    setAddFormStep(1); // 폼 단계 초기화
+    setAddFormStep(1);
   };
 
   const getCategoryStats = () => {
@@ -297,7 +296,6 @@ useEffect(() => {
             
             <div className="dialog-form">
               {addFormStep === 1 ? (
-                // 1단계: 공유자 선택 & URL 입력
                 <>
                   <div className="form-field">
                     <label>공유자</label>
@@ -320,29 +318,14 @@ useEffect(() => {
                         ...prev,
                         name: placeInfo.name,
                         address: placeInfo.address,
-                        rating: placeInfo.rating,
                         coordinates: placeInfo.coordinates,
                         link: placeInfo.link
                       }));
-                      setAddFormStep(2); // 정보 가져오기 성공하면 다음 단계로
+                      setAddFormStep(2);
                     }}
                   />
-
-                  <button 
-                    className="next-btn" 
-                    // onClick={() => {
-                    //   // if (!newRestaurant.link) {
-                    //   //   alert('네이버 지도 URL을 입력하고 검색해주세요.');
-                    //   //   return;
-                    //   // }
-                    //   setAddFormStep(2);
-                    // }}
-                  >
-                    다음 단계
-                  </button>
                 </>
               ) : (
-                // 2단계: 나머지 정보 입력
                 <>
                   <div className="form-field">
                     <label>가게명</label>
