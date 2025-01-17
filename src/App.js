@@ -1,10 +1,10 @@
 // App.js
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { NaverMapSearch, RestaurantMap } from './components/NaverMapComponents.js';
+import { RestaurantMap, getCoordinatesFromAddress, generateNaverMapDirectionLink } from './components/NaverMapComponents.js';
 
 const SHARERS = ['아나킨', '퓨리오사', '베일리', '셀리나', '엘레나', '제이든', '루트', '요타', '벨라'];
-const CATEGORIES = ['한식', '중식', '일식', '양식', '카페', '분식', '아시아','기타'];
+const CATEGORIES = ['한식', '중식', '일식', '양식', '카페', '분식', '아시아', '기타'];
 const RATINGS = [1, 2, 3, 4, 5];
 const API_BASE_URL = 'https://67866aa9f80b78923aa6bee6.mockapi.io/restaurants';
 
@@ -13,12 +13,11 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [editingRestaurant, setEditingRestaurant] = useState(null);
-  const [addFormStep, setAddFormStep] = useState(1);
 
   const [newRestaurant, setNewRestaurant] = useState({
     name: '',
@@ -26,7 +25,6 @@ function App() {
     category: CATEGORIES[0],
     rating: 0,
     comment: '',
-    link: '',
     address: '',
     coordinates: null
   });
@@ -35,34 +33,6 @@ function App() {
   useEffect(() => {
     fetchRestaurants();
   }, []);
-
-  // 2단계로 넘어갈 때 임시 저장된 장소 데이터 로딩
-  useEffect(() => {
-    if (addFormStep === 2) {
-      const fetchTempPlaceData = async () => {
-        try {
-          const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata');
-          if (!response.ok) throw new Error('데이터 로딩 실패');
-          const data = await response.json();
-          
-          // 가장 최근 데이터 사용
-          const latestData = data[data.length - 1];
-          
-          setNewRestaurant(prev => ({
-            ...prev,
-            name: latestData.name || '',
-            address: latestData.address || '',
-            coordinates: latestData.coordinates || null,
-            link: latestData.link || ''
-          }));
-        } catch (err) {
-          console.error('데이터 로딩 실패:', err);
-        }
-      };
-
-      fetchTempPlaceData();
-    }
-  }, [addFormStep]);
 
   // 전체 맛집 목록 가져오기
   const fetchRestaurants = async () => {
@@ -82,22 +52,34 @@ function App() {
   // 새로운 맛집 추가
   const handleAddRestaurant = async () => {
     try {
+      // 입력 필수값 검증
       if (!newRestaurant.name || !newRestaurant.address) {
         alert('가게명과 주소는 필수 입력사항입니다');
         return;
       }
 
+      // 주소 좌표 변환
+      const geocodeResult = await getCoordinatesFromAddress(newRestaurant.address);
+      
+      // 맛집 정보에 좌표 추가
+      const restaurantToSave = {
+        ...newRestaurant,
+        coordinates: geocodeResult.coordinates,
+        naverDirectionLink: generateNaverMapDirectionLink(newRestaurant.address)
+      };
+
+      // API 저장
       const response = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRestaurant)
+        body: JSON.stringify(restaurantToSave)
       });
 
       if (!response.ok) throw new Error('맛집 추가 실패');
 
       const addedRestaurant = await response.json();
       setRestaurants(prev => [...prev, addedRestaurant]);
-      setIsAddDialogOpen(false);
+      setIsDialogOpen(false);
       resetForm();
       alert('맛집이 추가되었습니다!');
     } catch (err) {
@@ -110,10 +92,20 @@ function App() {
     try {
       if (!editingRestaurant?.id) return;
 
+      // 주소 좌표 변환
+      const geocodeResult = await getCoordinatesFromAddress(editingRestaurant.address);
+      
+      // 수정된 정보에 좌표 및 길찾기 링크 추가
+      const updatedRestaurantData = {
+        ...editingRestaurant,
+        coordinates: geocodeResult.coordinates,
+        naverDirectionLink: generateNaverMapDirectionLink(editingRestaurant.address)
+      };
+
       const response = await fetch(`${API_BASE_URL}/${editingRestaurant.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingRestaurant)
+        body: JSON.stringify(updatedRestaurantData)
       });
 
       if (!response.ok) throw new Error('수정 실패');
@@ -150,11 +142,9 @@ function App() {
       category: CATEGORIES[0],
       rating: 0,
       comment: '',
-      link: '',
       address: '',
       coordinates: null
     });
-    setAddFormStep(1);
   };
 
   // 카테고리별 통계
@@ -190,6 +180,7 @@ function App() {
 
   return (
     <div className="admin-dashboard">
+      {/* 헤더 및 통계 카드 등 기존 UI 구조 유지 */}
       <header className="dashboard-header">
         <h1>🍽️ 숨슐랭 가이드</h1>
         <p className="header-subtitle">맛있는 발견의 시작</p>
@@ -230,7 +221,7 @@ function App() {
             />
             <button 
               className="add-restaurant-btn"
-              onClick={() => setIsAddDialogOpen(true)}
+              onClick={() => setIsDialogOpen(true)}
             >
               맛집 추가하기
             </button>
@@ -249,7 +240,8 @@ function App() {
               <th>카테고리</th>
               <th>평점</th>
               <th>코멘트</th>
-              <th>링크</th>
+              <th>주소</th>
+              <th>길찾기</th>
               <th>작업</th>
             </tr>
           </thead>
@@ -261,9 +253,15 @@ function App() {
                 <td>{restaurant.category}</td>
                 <td>{'⭐'.repeat(restaurant.rating)}</td>
                 <td>{restaurant.comment}</td>
+                <td>{restaurant.address}</td>
                 <td>
-                  {restaurant.link && (
-                    <a href={restaurant.link} target="_blank" rel="noopener noreferrer">
+                  {restaurant.naverDirectionLink && (
+                    <a 
+                      href={restaurant.naverDirectionLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="direction-link"
+                    >
                       바로가기
                     </a>
                   )}
@@ -292,142 +290,119 @@ function App() {
       </section>
 
       {/* 맛집 추가 다이얼로그 */}
-      {isAddDialogOpen && (
+      {isDialogOpen && (
         <div className="dialog-overlay" onClick={() => {
-          setIsAddDialogOpen(false);
+          setIsDialogOpen(false);
           resetForm();
         }}>
           <div className="dialog-content" onClick={e => e.stopPropagation()}>
             <div className="dialog-header">
-              <h2>새로운 맛집 추가하기 {addFormStep}/2</h2>
+              <h2>새로운 맛집 추가하기</h2>
               <button className="close-btn" onClick={() => {
-                setIsAddDialogOpen(false);
+                setIsDialogOpen(false);
                 resetForm();
               }}>✕</button>
             </div>
             
             <div className="dialog-form">
-              {addFormStep === 1 ? (
-                <>
-                  <div className="form-field">
-                    <label>공유자</label>
-                    <select
-                      value={newRestaurant.sharedBy}
-                      onChange={(e) => setNewRestaurant(prev => ({
-                        ...prev,
-                        sharedBy: e.target.value
-                      }))}
+              <div className="form-field">
+                <label>공유자</label>
+                <select
+                  value={newRestaurant.sharedBy}
+                  onChange={(e) => setNewRestaurant(prev => ({
+                    ...prev,
+                    sharedBy: e.target.value
+                  }))}
+                >
+                  {SHARERS.map(sharer => (
+                    <option key={sharer} value={sharer}>{sharer}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label>가게명</label>
+                <input
+                  type="text"
+                  value={newRestaurant.name}
+                  onChange={(e) => setNewRestaurant(prev => ({
+                    ...prev,
+                    name: e.target.value
+                  }))}
+                  placeholder="가게명을 입력하세요"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>주소</label>
+                <input
+                  type="text"
+                  value={newRestaurant.address}
+                  onChange={(e) => setNewRestaurant(prev => ({
+                    ...prev,
+                    address: e.target.value
+                  }))}
+                  placeholder="도로명 주소를 입력하세요"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>카테고리</label>
+                <select
+                  value={newRestaurant.category}
+                  onChange={(e) => setNewRestaurant(prev => ({
+                    ...prev,
+                    category: e.target.value
+                  }))}
+                >
+                  {CATEGORIES.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label>평점</label>
+                <div className="rating-selector">
+                  {RATINGS.map(rating => (
+                    <button
+                      key={rating}
+                      type="button"
+                      className={`rating-btn ${newRestaurant.rating >= rating ? 'active' : ''}`}
+                      onClick={() => setNewRestaurant(prev => ({ ...prev, rating }))}
                     >
-                      {SHARERS.map(sharer => (
-                        <option key={sharer} value={sharer}>{sharer}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <NaverMapSearch 
-                    onPlaceSelect={(placeInfo) => {
-                      setNewRestaurant(prev => ({
-                        ...prev,
-                        name: placeInfo.name,
-                        address: placeInfo.address,
-                        coordinates: placeInfo.coordinates,
-                        link: placeInfo.link
-                      }));
-                      setAddFormStep(2);
-                    }}
-                  />
-                </>
-              ) : (
-                <>
-                  <div className="form-field">
-                    <label>가게명</label>
-                    <input
-                      type="text"
-                      value={newRestaurant.name}
-                      onChange={(e) => setNewRestaurant(prev => ({
-                        ...prev,
-                        name: e.target.value
-                      }))}
-                      disabled
-                      className="disabled-input"
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label>주소</label>
-                    <input
-                      type="text"
-                      value={newRestaurant.address}
-                      disabled
-                      className="disabled-input"
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label>카테고리</label>
-                    <select
-                      value={newRestaurant.category}
-                      onChange={(e) => setNewRestaurant(prev => ({
-                        ...prev,
-                        category: e.target.value
-                      }))}
-                    >
-                      {CATEGORIES.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label>평점</label>
-                    <div className="rating-selector">
-                      {RATINGS.map(rating => (
-                        <button
-                          key={rating}
-                          type="button"
-                          className={`rating-btn ${newRestaurant.rating >= rating ? 'active' : ''}`}
-                          onClick={() => setNewRestaurant(prev => ({ ...prev, rating }))}
-                        >
-                          ⭐
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="form-field">
-                    <label>코멘트</label>
-                    <textarea
-                      value={newRestaurant.comment}
-                      onChange={(e) => setNewRestaurant(prev => ({
-                        ...prev,
-                        comment: e.target.value
-                      }))}
-                      placeholder="맛집에 대한 코멘트를 입력해주세요"
-                    />
-                  </div>
-
-                  <div className="form-actions">
-                    <button 
-                      className="back-btn" 
-                      onClick={() => setAddFormStep(1)}
-                    >
-                      이전으로
+                      ⭐
                     </button>
-                    <button 
-                      className="save-btn" 
-                      onClick={handleAddRestaurant}
-                    >
-                      저장하기
-                    </button>
-                  </div>
-                </>
-              )}
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-field">
+                <label>코멘트</label>
+                <textarea
+                  value={newRestaurant.comment}
+                  onChange={(e) => setNewRestaurant(prev => ({
+                    ...prev,
+                    comment: e.target.value
+                  }))}
+                  placeholder="맛집에 대한 코멘트를 입력해주세요"
+                />
+              </div>
+
+              <div className="form-actions">
+                <button 
+                  className="save-btn" 
+                  onClick={handleAddRestaurant}
+                >
+                  저장하기
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 수정 다이얼로그 */}
+      {/* 맛집 수정 다이얼로그 */}
       {isEditDialogOpen && editingRestaurant && (
         <div className="dialog-overlay" onClick={() => setIsEditDialogOpen(false)}>
           <div className="dialog-content" onClick={e => e.stopPropagation()}>
@@ -437,6 +412,78 @@ function App() {
             </div>
             <div className="dialog-form">
               <div className="form-field">
+                <label>공유자</label>
+                <select
+                  value={editingRestaurant.sharedBy}
+                  onChange={(e) => setEditingRestaurant(prev => ({
+                    ...prev,
+                    sharedBy: e.target.value
+                  }))}
+                >
+                  {SHARERS.map(sharer => (
+                    <option key={sharer} value={sharer}>{sharer}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label>가게명</label>
+                <input
+                  type="text"
+                  value={editingRestaurant.name}
+                  onChange={(e) => setEditingRestaurant(prev => ({
+                    ...prev,
+                    name: e.target.value
+                  }))}
+                  placeholder="가게명을 입력하세요"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>주소</label>
+                <input
+                  type="text"
+                  value={editingRestaurant.address}
+                  onChange={(e) => setEditingRestaurant(prev => ({
+                    ...prev,
+                    address: e.target.value
+                  }))}
+                  placeholder="도로명 주소를 입력하세요"
+                />
+              </div>
+
+              <div className="form-field">
+                <label>카테고리</label>
+                <select
+                  value={editingRestaurant.category}
+                  onChange={(e) => setEditingRestaurant(prev => ({
+                    ...prev,
+                    category: e.target.value
+                  }))}
+                >
+                  {CATEGORIES.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label>평점</label>
+                <div className="rating-selector">
+                  {RATINGS.map(rating => (
+                    <button
+                      key={rating}
+                      type="button"
+                      className={`rating-btn ${editingRestaurant.rating >= rating ? 'active' : ''}`}
+                      onClick={() => setEditingRestaurant(prev => ({ ...prev, rating }))}
+                    >
+                      ⭐
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-field">
                 <label>코멘트</label>
                 <textarea
                   value={editingRestaurant.comment}
@@ -444,11 +491,18 @@ function App() {
                     ...prev,
                     comment: e.target.value
                   }))}
+                  placeholder="맛집에 대한 코멘트를 입력해주세요"
                 />
               </div>
-              <button className="save-btn" onClick={handleUpdateRestaurant}>
-                수정 완료
-              </button>
+
+              <div className="form-actions">
+                <button 
+                  className="save-btn" 
+                  onClick={handleUpdateRestaurant}
+                >
+                  수정 완료
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -477,7 +531,8 @@ function App() {
                   <th>공유자</th>
                   <th>평점</th>
                   <th>코멘트</th>
-                  <th>링크</th>
+                  <th>주소</th>
+                  <th>길찾기</th>
                 </tr>
               </thead>
               <tbody>
@@ -487,9 +542,14 @@ function App() {
                     <td>{restaurant.sharedBy}</td>
                     <td>{'⭐'.repeat(restaurant.rating)}</td>
                     <td>{restaurant.comment}</td>
+                    <td>{restaurant.address}</td>
                     <td>
-                      {restaurant.link && (
-                        <a href={restaurant.link} target="_blank" rel="noopener noreferrer">
+                      {restaurant.naverDirectionLink && (
+                        <a 
+                          href={restaurant.naverDirectionLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
                           바로가기
                         </a>
                       )}

@@ -1,124 +1,49 @@
 // src/components/NaverMapComponents.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
-// 네이버 지도 검색 컴포넌트
+// 네이버 지도 길찾기 링크 생성 함수
+export const generateNaverMapDirectionLink = (address) => {
+  const encodedAddress = encodeURIComponent(address);
+  return `https://map.naver.com/v5/directions/-/address/${encodedAddress}`;
+};
 
-const NaverMapSearch = ({ onPlaceSelect }) => {
-  const [mapUrl, setMapUrl] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const handleSearch = async () => {
-    if (!mapUrl) return;
-    
-    setLoading(true);
-    setError(null);
-
-    try {
-      // 1. URL에서 키워드 추출
-      let keyword;
-      if (mapUrl.includes('naver.me')) {
-        const segments = mapUrl.split('/');
-        keyword = segments[segments.length - 1];
-      } else if (mapUrl.includes('place/')) {
-        const match = mapUrl.match(/place\/([^?/]+)/);
-        keyword = match ? decodeURIComponent(match[1]) : null;
-      }
-
-      if (!keyword) {
-        throw new Error('올바른 네이버 지도 URL이 아닙니다');
-      }
-
-      // 2. 네이버 지도 Places 서비스로 검색
-      const ps = new naver.maps.Service.Places();
-      
-      const placeInfo = await new Promise((resolve, reject) => {
-        ps.search(
-          { query: keyword }, 
-          function(status, response) {
-            if (status !== naver.maps.Service.Status.OK) {
-              reject(new Error('장소 검색에 실패했습니다'));
-              return;
-            }
-
-            const places = response.places;
-            if (!places || places.length === 0) {
-              reject(new Error('장소를 찾을 수 없습니다'));
-              return;
-            }
-
-            const place = places[0];  // 첫 번째 검색 결과 사용
-            resolve({
-              name: place.name,
-              address: place.address,
-              coordinates: {
-                lat: parseFloat(place.y),
-                lng: parseFloat(place.x)
-              }
-            });
-          }
-        );
-      });
-
-      // 3. MockAPI에 데이터 저장
-      const response = await fetch('https://67866aa9f80b78923aa6bee6.mockapi.io/navermapdata', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...placeInfo,
-          link: mapUrl
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('데이터 저장에 실패했습니다');
-      }
-
-      const savedData = await response.json();
-      onPlaceSelect(savedData);
-
-    } catch (err) {
-      console.error('Error:', err);
-      setError(err.message || '장소 정보를 가져오는데 실패했습니다');
-    } finally {
-      setLoading(false);
+// 주소 지오코딩 (좌표 변환) 함수
+export const getCoordinatesFromAddress = (address) => {
+  return new Promise((resolve, reject) => {
+    if (!window.naver || !window.naver.maps || !window.naver.maps.Service) {
+      reject(new Error('네이버 지도 API가 로드되지 않았습니다.'));
+      return;
     }
-  };
 
-  return (
-    <div className="map-search">
-      <div className="form-field">
-        <label>네이버 지도 URL</label>
-        <input
-          type="text"
-          value={mapUrl}
-          onChange={(e) => setMapUrl(e.target.value)}
-          placeholder="네이버 지도 URL을 붙여넣으세요 (축약 URL도 가능)"
-          className="search-input"
-          disabled={loading}
-        />
-        {loading && <p className="loading-message">장소 정보를 가져오는 중...</p>}
-        {error && <p className="error-message">{error}</p>}
-      </div>
-      
-      <button 
-        className="next-btn"
-        onClick={handleSearch}
-        disabled={loading || !mapUrl}
-      >
-        다음 단계
-      </button>
-    </div>
-  );
+    window.naver.maps.Service.geocode({
+      query: address
+    }, function(status, response) {
+      if (status !== window.naver.maps.Service.Status.OK) {
+        reject(new Error('주소를 찾을 수 없습니다.'));
+        return;
+      }
+
+      const item = response.v2.addresses[0];
+      const coordinates = {
+        lat: parseFloat(item.y),
+        lng: parseFloat(item.x)
+      };
+
+      resolve({
+        coordinates,
+        roadAddress: item.roadAddress,
+        jibunAddress: item.jibunAddress
+      });
+    });
+  });
 };
 
 // 지도 표시 컴포넌트
-const RestaurantMap = ({ restaurants, height = '400px' }) => {
+export const RestaurantMap = ({ restaurants, height = '400px' }) => {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const infoWindowRef = useRef(null);
 
-  // 숨고 오피스 위치 (테헤란로 133)
   const DEFAULT_CENTER = {
     lat: 37.5001,
     lng: 127.0335
@@ -131,7 +56,6 @@ const RestaurantMap = ({ restaurants, height = '400px' }) => {
         return;
       }
 
-      // 지도 초기화
       const map = new window.naver.maps.Map(mapRef.current, {
         center: new window.naver.maps.LatLng(DEFAULT_CENTER.lat, DEFAULT_CENTER.lng),
         zoom: 15
@@ -140,6 +64,7 @@ const RestaurantMap = ({ restaurants, height = '400px' }) => {
       // 기존 마커 제거
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current = [];
+      
       if (infoWindowRef.current) {
         infoWindowRef.current.setMap(null);
       }
@@ -240,5 +165,3 @@ const RestaurantMap = ({ restaurants, height = '400px' }) => {
 
   return <div ref={mapRef} style={{ width: '100%', height }} />;
 };
-
-export { NaverMapSearch, RestaurantMap };
