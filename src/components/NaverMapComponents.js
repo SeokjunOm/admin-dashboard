@@ -9,18 +9,16 @@ const DEFAULT_CENTER = {
 
 // 네이버 지도 길찾기 링크 생성 함수
 export const generateNaverMapDirectionLink = (address, coordinates) => {
-  // 출발지(숨고 오피스) 좌표
+  // 출발지(숨고 오피스) 정보
   const startPoint = `${DEFAULT_CENTER.lng},${DEFAULT_CENTER.lat}`;
-  
-  // 도착지 좌표 (coordinates가 있는 경우 좌표 사용, 없는 경우 주소 사용)
-  const destination = coordinates 
-    ? `${coordinates.lng},${coordinates.lat}` 
-    : encodeURIComponent(address);
+  const startAddress = encodeURIComponent('서울 강남구 테헤란로 133');
 
-  const destinationType = coordinates ? 'coordinate' : 'address';
-  
-  // 네이버 지도 V5 길찾기 URL 포맷
-  return `https://map.naver.com/v5/directions/${startPoint},숨고 오피스/-/${destinationType}/${destination},${encodeURIComponent(address)}`;
+  // 도착지 정보
+  const endPoint = coordinates ? `${coordinates.lng},${coordinates.lat}` : '';
+  const endAddress = encodeURIComponent(address);
+
+  // 새로운 네이버 지도 URL 포맷 (v5 -> p)
+  return `https://map.naver.com/p/directions/${startPoint},${startAddress},09680101,ADDRESS_POI/${endPoint},${endAddress}/-/transit?c=18.00,0,0,0,dh`;
 };
 
 // 주소 지오코딩 (좌표 변환) 함수
@@ -134,6 +132,9 @@ export const RestaurantMap = ({ restaurants, height = '400px' }) => {
           }
         });
 
+        // 네이버 지도 길찾기 링크 생성
+        const directionLink = generateNaverMapDirectionLink(restaurant.address, restaurant.coordinates);
+
         const infoWindow = new window.naver.maps.InfoWindow({
           content: `
             <div style="padding: 10px;">
@@ -142,6 +143,13 @@ export const RestaurantMap = ({ restaurants, height = '400px' }) => {
                 ${getCategoryWithEmoji(restaurant.category)} · ${restaurant.sharedBy}
               </p>
               <p style="margin: 5px 0 0; color: #FFB800;">${'⭐'.repeat(restaurant.rating)}</p>
+              <a href="${directionLink}" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style="display: inline-block; margin-top: 8px; padding: 4px 8px; background: #693bf2; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;"
+              >
+                바로가기
+              </a>
             </div>
           `,
           borderWidth: 0,
