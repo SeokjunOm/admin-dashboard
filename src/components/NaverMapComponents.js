@@ -1,6 +1,6 @@
 // src/components/NaverMapComponents.js
 import React, { useEffect, useRef } from 'react';
-import { CATEGORY_EMOJIS, getCategoryWithEmoji } from '../constants/categoryEmojis';
+import { CATEGORY_EMOJIS, getCategoryWithEmoji } from '../constants/categoryEmojis.js';
 
 const DEFAULT_CENTER = {
   lat: 37.5001,
