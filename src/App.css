@@ -431,12 +431,41 @@ body {
   transform: translateY(-1px);
 }
 
-/* 카테고리 다이얼로그 */
-.category-dialog {
-  width: 90%;
-  max-width: 1000px;
-  height: 80vh;
-  overflow-y: auto;
+/* Category Dialog Table */
+.category-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.category-table th {
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: left;
+  border-right: 1px solid rgba(229, 232, 235, 0.5);
+  border-bottom: 1px solid var(--border);
+}
+
+.category-table th:last-child {
+  border-right: none;
+}
+
+.category-table td {
+  padding: 1rem;
+  border-right: 1px solid rgba(229, 232, 235, 0.5);
+  border-bottom: 1px solid var(--border);
+}
+
+.category-table td:last-child {
+  padding: 0.5rem 1rem;
+  width: 160px;
+  border-right: none;
+}
+
+.category-table tr:hover td {
+  background: var(--background);
 }
 
 /* 반응형 디자인 */
