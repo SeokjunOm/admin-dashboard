@@ -1,6 +1,6 @@
 // src/components/NaverMapComponents.js
 import React, { useEffect, useRef } from 'react';
-import { CATEGORY_EMOJIS, getCategoryWithEmoji } from '../constants/categoryEmojis';
+import { CATEGORY_EMOJIS, getCategoryWithEmoji } from '../constants/categoryEmojis.js';
 
 // 네이버 지도 길찾기 링크 생성 함수
 export const generateNaverMapDirectionLink = (address) => {

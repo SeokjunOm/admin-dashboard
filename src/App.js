@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { RestaurantMap, getCoordinatesFromAddress, generateNaverMapDirectionLink } from './components/NaverMapComponents.js';
-import { CATEGORY_EMOJIS, getCategoryWithEmoji } from './constants/categoryEmojis';
+import { CATEGORY_EMOJIS, getCategoryWithEmoji } from './constants/categoryEmojis.js';
 
 const SHARERS = ['아나킨', '퓨리오사', '베일리', '셀리나', '엘레나', '제이든', '루트', '요타', '벨라'];
 const CATEGORIES = ['한식', '중식', '일식', '양식', '카페', '분식', '아시아', '기타'];
