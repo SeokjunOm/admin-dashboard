@@ -1,5 +1,6 @@
 // src/components/NaverMapComponents.js
 import React, { useEffect, useRef } from 'react';
+import { CATEGORY_EMOJIS, getCategoryWithEmoji } from '../constants/categoryEmojis';
 
 // 네이버 지도 길찾기 링크 생성 함수
 export const generateNaverMapDirectionLink = (address) => {
@@ -116,8 +117,10 @@ export const RestaurantMap = ({ restaurants, height = '400px' }) => {
           position,
           map,
           icon: {
-            content: '<div style="width: 10px; height: 10px; background: var(--primary); border-radius: 50%; border: 2px solid #FFF; box-shadow: 0 2px 6px rgba(0,0,0,0.3);"></div>',
-            anchor: new window.naver.maps.Point(5, 5)
+            content: `<div style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+              ${CATEGORY_EMOJIS[restaurant.category] || CATEGORY_EMOJIS['기타']}
+            </div>`,
+            anchor: new window.naver.maps.Point(12, 12)
           }
         });
 
@@ -125,7 +128,9 @@ export const RestaurantMap = ({ restaurants, height = '400px' }) => {
           content: `
             <div style="padding: 10px;">
               <strong>${restaurant.name}</strong>
-              <p style="margin: 5px 0 0; font-size: 12px;">${restaurant.category} · ${restaurant.sharedBy}</p>
+              <p style="margin: 5px 0 0; font-size: 12px;">
+                ${getCategoryWithEmoji(restaurant.category)} · ${restaurant.sharedBy}
+              </p>
               <p style="margin: 5px 0 0; color: #FFB800;">${'⭐'.repeat(restaurant.rating)}</p>
             </div>
           `,

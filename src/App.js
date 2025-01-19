@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { RestaurantMap, getCoordinatesFromAddress, generateNaverMapDirectionLink } from './components/NaverMapComponents.js';
+import { CATEGORY_EMOJIS, getCategoryWithEmoji } from './constants/categoryEmojis';
 
 const SHARERS = ['아나킨', '퓨리오사', '베일리', '셀리나', '엘레나', '제이든', '루트', '요타', '벨라'];
 const CATEGORIES = ['한식', '중식', '일식', '양식', '카페', '분식', '아시아', '기타'];
@@ -180,7 +181,6 @@ function App() {
 
   return (
     <div className="admin-dashboard">
-      {/* 헤더 및 통계 카드 등 기존 UI 구조 유지 */}
       <header className="dashboard-header">
         <h1>🍽️ 숨슐랭 가이드</h1>
         <p className="header-subtitle">맛있는 발견의 시작</p>
@@ -197,7 +197,7 @@ function App() {
             }}
           >
             <div className="stat-card-content">
-              <h3 className="stat-card-title">{category}</h3>
+              <h3 className="stat-card-title">{getCategoryWithEmoji(category)}</h3>
               <p className="stat-card-value">{count}</p>
               <span className="stat-card-label">맛집</span>
             </div>
@@ -250,7 +250,7 @@ function App() {
               <tr key={restaurant.id}>
                 <td>{restaurant.name}</td>
                 <td>{restaurant.sharedBy}</td>
-                <td>{restaurant.category}</td>
+                <td>{getCategoryWithEmoji(restaurant.category)}</td>
                 <td>{'⭐'.repeat(restaurant.rating)}</td>
                 <td>{restaurant.comment}</td>
                 <td>{restaurant.address}</td>
@@ -356,7 +356,9 @@ function App() {
                   }))}
                 >
                   {CATEGORIES.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                    <option key={category} value={category}>
+                      {getCategoryWithEmoji(category)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -462,7 +464,9 @@ function App() {
                   }))}
                 >
                   {CATEGORIES.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                    <option key={category} value={category}>
+                      {getCategoryWithEmoji(category)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -513,7 +517,7 @@ function App() {
         <div className="dialog-overlay" onClick={() => setIsCategoryDialogOpen(false)}>
           <div className="dialog-content category-dialog" onClick={e => e.stopPropagation()}>
             <div className="dialog-header">
-              <h2>{selectedCategory} 맛집 목록</h2>
+              <h2>{getCategoryWithEmoji(selectedCategory)} 맛집 목록</h2>
               <button className="close-btn" onClick={() => setIsCategoryDialogOpen(false)}>✕</button>
             </div>
 
