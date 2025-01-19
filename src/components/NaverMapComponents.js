@@ -10,7 +10,7 @@ const DEFAULT_CENTER = {
 // 네이버 지도 길찾기 링크 생성 함수 - 좌표만 사용하는 버전
 export const generateNaverMapDirectionLink = (_, coordinates) => {
   if (!coordinates) return null;
-  return `https://map.naver.com/p/directions/${DEFAULT_CENTER.lng},${DEFAULT_CENTER.lat}/${coordinates.lng},${coordinates.lat}/-/transit?c=16.00,0,0,0,dh`;
+  return `https://map.naver.com/p/directions/${DEFAULT_CENTER.lng},${DEFAULT_CENTER.lat}/${coordinates.lng},${coordinates.lat}/-/walk?c=16.00,0,0,0,dh`;
 };
 
 // 주소 지오코딩 (좌표 변환) 함수

@@ -18,6 +18,8 @@ function App() {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [editingRestaurant, setEditingRestaurant] = useState(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [isRestaurantDetailOpen, setIsRestaurantDetailOpen] = useState(false);
   const [newRestaurant, setNewRestaurant] = useState({
     name: '',
     sharedBy: SHARERS[0],
@@ -57,7 +59,10 @@ function App() {
       const restaurantToSave = {
         ...newRestaurant,
         coordinates: geocodeResult.coordinates,
-        naverDirectionLink: generateNaverMapDirectionLink(newRestaurant.address, geocodeResult.coordinates)
+        naverDirectionLink: generateNaverMapDirectionLink(
+          newRestaurant.address, 
+          geocodeResult.coordinates
+        )
       };
 
       const response = await fetch(API_BASE_URL, {
@@ -86,7 +91,10 @@ function App() {
       const updatedRestaurantData = {
         ...editingRestaurant,
         coordinates: geocodeResult.coordinates,
-        naverDirectionLink: generateNaverMapDirectionLink(editingRestaurant.address, geocodeResult.coordinates)
+        naverDirectionLink: generateNaverMapDirectionLink(
+          editingRestaurant.address, 
+          geocodeResult.coordinates
+        )
       };
 
       const response = await fetch(`${API_BASE_URL}/${editingRestaurant.id}`, {
@@ -130,6 +138,11 @@ function App() {
       address: '',
       coordinates: null
     });
+  };
+
+  const openRestaurantDetail = (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setIsRestaurantDetailOpen(true);
   };
 
   const getCategoryStats = () => {
@@ -223,13 +236,17 @@ function App() {
               <th>코멘트</th>
               <th>주소</th>
               <th>길찾기</th>
-              <th>작업</th>
             </tr>
           </thead>
           <tbody>
             {filteredRestaurants.map(restaurant => (
               <tr key={restaurant.id}>
-                <td>{restaurant.name}</td>
+                <td 
+                  style={{ cursor: 'pointer', fontWeight: 'bold' }}
+                  onClick={() => openRestaurantDetail(restaurant)}
+                >
+                  {restaurant.name}
+                </td>
                 <td>{restaurant.sharedBy}</td>
                 <td>{getCategoryWithEmoji(restaurant.category)}</td>
                 <td>{'⭐'.repeat(restaurant.rating)}</td>
@@ -246,23 +263,6 @@ function App() {
                       바로가기
                     </a>
                   )}
-                </td>
-                <td>
-                  <button 
-                    className="edit-btn"
-                    onClick={() => {
-                      setEditingRestaurant(restaurant);
-                      setIsEditDialogOpen(true);
-                    }}
-                  >
-                    수정
-                  </button>
-                  <button 
-                    className="delete-btn"
-                    onClick={() => handleDeleteRestaurant(restaurant.id)}
-                  >
-                    삭제
-                  </button>
                 </td>
               </tr>
             ))}
@@ -543,6 +543,67 @@ function App() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* 레스토랑 상세 정보 모달 */}
+      {isRestaurantDetailOpen && selectedRestaurant && (
+        <div className="dialog-overlay" onClick={() => setIsRestaurantDetailOpen(false)}>
+          <div className="dialog-content restaurant-detail" onClick={e => e.stopPropagation()}>
+            <div className="dialog-header">
+              <h2>{selectedRestaurant.name} 상세 정보</h2>
+              <button className="close-btn" onClick={() => setIsRestaurantDetailOpen(false)}>✕</button>
+            </div>
+            
+            <div className="restaurant-detail-content">
+              <div className="detail-row">
+                <strong>공유자:</strong> {selectedRestaurant.sharedBy}
+              </div>
+              <div className="detail-row">
+                <strong>카테고리:</strong> {getCategoryWithEmoji(selectedRestaurant.category)}
+              </div>
+              <div className="detail-row">
+                <strong>평점:</strong> {'⭐'.repeat(selectedRestaurant.rating)}
+              </div>
+              <div className="detail-row">
+                <strong>주소:</strong> {selectedRestaurant.address}
+              </div>
+              <div className="detail-row">
+                <strong>코멘트:</strong> {selectedRestaurant.comment}
+              </div>
+              <div className="detail-actions">
+                {selectedRestaurant.naverDirectionLink && (
+                  <a 
+                    href={selectedRestaurant.naverDirectionLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="direction-link"
+                  >
+                    길찾기
+                  </a>
+                )}
+                <button 
+                  className="edit-btn"
+                  onClick={() => {
+                    setEditingRestaurant(selectedRestaurant);
+                    setIsEditDialogOpen(true);
+                    setIsRestaurantDetailOpen(false);
+                  }}
+                >
+                  수정하기
+                </button>
+                <button 
+                  className="delete-btn"
+                  onClick={() => {
+                    handleDeleteRestaurant(selectedRestaurant.id);
+                    setIsRestaurantDetailOpen(false);
+                  }}
+                >
+                  삭제하기
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
