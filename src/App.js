@@ -2,10 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { RestaurantMap, getCoordinatesFromAddress, generateNaverMapDirectionLink } from './components/NaverMapComponents.js';
-import { CATEGORY_EMOJIS, getCategoryWithEmoji } from './constants/categoryEmojis.js';
+import { CATEGORY_NAMES as CATEGORIES, CATEGORY_EMOJIS, getCategoryWithEmoji } from './constants/categoryEmojis';
 
 const SHARERS = ['아나킨', '퓨리오사', '베일리', '셀리나', '엘레나', '제이든', '루트', '요타', '벨라'];
-const CATEGORIES = ['한식', '중식', '일식', '양식', '카페', '분식', '아시아', '기타'];
 const RATINGS = [1, 2, 3, 4, 5];
 const API_BASE_URL = 'https://67866aa9f80b78923aa6bee6.mockapi.io/restaurants';
 
@@ -19,7 +18,6 @@ function App() {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [editingRestaurant, setEditingRestaurant] = useState(null);
-
   const [newRestaurant, setNewRestaurant] = useState({
     name: '',
     sharedBy: SHARERS[0],
@@ -30,12 +28,10 @@ function App() {
     coordinates: null
   });
 
-  // 초기 데이터 로딩
   useEffect(() => {
     fetchRestaurants();
   }, []);
 
-  // 전체 맛집 목록 가져오기
   const fetchRestaurants = async () => {
     try {
       setLoading(true);
@@ -50,26 +46,20 @@ function App() {
     }
   };
 
-  // 새로운 맛집 추가
   const handleAddRestaurant = async () => {
     try {
-      // 입력 필수값 검증
       if (!newRestaurant.name || !newRestaurant.address) {
         alert('가게명과 주소는 필수 입력사항입니다');
         return;
       }
 
-      // 주소 좌표 변환
       const geocodeResult = await getCoordinatesFromAddress(newRestaurant.address);
-      
-      // 맛집 정보에 좌표 추가
       const restaurantToSave = {
         ...newRestaurant,
         coordinates: geocodeResult.coordinates,
         naverDirectionLink: generateNaverMapDirectionLink(newRestaurant.address)
       };
 
-      // API 저장
       const response = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,15 +78,11 @@ function App() {
     }
   };
 
-  // 맛집 정보 수정
   const handleUpdateRestaurant = async () => {
     try {
       if (!editingRestaurant?.id) return;
 
-      // 주소 좌표 변환
       const geocodeResult = await getCoordinatesFromAddress(editingRestaurant.address);
-      
-      // 수정된 정보에 좌표 및 길찾기 링크 추가
       const updatedRestaurantData = {
         ...editingRestaurant,
         coordinates: geocodeResult.coordinates,
@@ -122,7 +108,6 @@ function App() {
     }
   };
 
-  // 맛집 삭제
   const handleDeleteRestaurant = async (id) => {
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
 
@@ -135,7 +120,6 @@ function App() {
     }
   };
 
-  // 폼 초기화
   const resetForm = () => {
     setNewRestaurant({
       name: '',
@@ -148,7 +132,6 @@ function App() {
     });
   };
 
-  // 카테고리별 통계
   const getCategoryStats = () => {
     const stats = restaurants.reduce((acc, restaurant) => {
       const category = restaurant.category || '미분류';
@@ -162,12 +145,10 @@ function App() {
     }));
   };
 
-  // 카테고리별 맛집 목록
   const getCategoryRestaurants = (category) => {
     return restaurants.filter(restaurant => restaurant.category === category);
   };
 
-  // 검색 필터링
   const filteredRestaurants = restaurants.filter(restaurant => {
     const query = searchQuery.toLowerCase();
     return (
@@ -183,7 +164,7 @@ function App() {
     <div className="admin-dashboard">
       <header className="dashboard-header">
         <h1>🍽️ 숨슐랭 가이드</h1>
-        <p className="header-subtitle">맛있는 발견의 시작</p>
+        <p className="header-subtitle">점심 메뉴 고민의 끝, 숨슐랭 가이드</p>
       </header>
 
       <div className="stats-cards">
