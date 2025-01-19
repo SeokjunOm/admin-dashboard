@@ -57,7 +57,7 @@ function App() {
       const restaurantToSave = {
         ...newRestaurant,
         coordinates: geocodeResult.coordinates,
-        naverDirectionLink: generateNaverMapDirectionLink(newRestaurant.address)
+        naverDirectionLink: generateNaverMapDirectionLink(newRestaurant.address, geocodeResult.coordinates)
       };
 
       const response = await fetch(API_BASE_URL, {
@@ -86,7 +86,7 @@ function App() {
       const updatedRestaurantData = {
         ...editingRestaurant,
         coordinates: geocodeResult.coordinates,
-        naverDirectionLink: generateNaverMapDirectionLink(editingRestaurant.address)
+        naverDirectionLink: generateNaverMapDirectionLink(editingRestaurant.address, geocodeResult.coordinates)
       };
 
       const response = await fetch(`${API_BASE_URL}/${editingRestaurant.id}`, {

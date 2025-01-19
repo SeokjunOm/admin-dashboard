@@ -1,11 +1,26 @@
 // src/components/NaverMapComponents.js
 import React, { useEffect, useRef } from 'react';
-import { CATEGORY_EMOJIS, getCategoryWithEmoji } from '../constants/categoryEmojis.js';
+import { CATEGORY_EMOJIS, getCategoryWithEmoji } from '../constants/categoryEmojis';
+
+const DEFAULT_CENTER = {
+  lat: 37.5001,
+  lng: 127.0335
+};
 
 // 네이버 지도 길찾기 링크 생성 함수
-export const generateNaverMapDirectionLink = (address) => {
-  const encodedAddress = encodeURIComponent(address);
-  return `https://map.naver.com/v5/directions/-/address/${encodedAddress}`;
+export const generateNaverMapDirectionLink = (address, coordinates) => {
+  // 출발지(숨고 오피스) 좌표
+  const startPoint = `${DEFAULT_CENTER.lng},${DEFAULT_CENTER.lat}`;
+  
+  // 도착지 좌표 (coordinates가 있는 경우 좌표 사용, 없는 경우 주소 사용)
+  const destination = coordinates 
+    ? `${coordinates.lng},${coordinates.lat}` 
+    : encodeURIComponent(address);
+
+  const destinationType = coordinates ? 'coordinate' : 'address';
+  
+  // 네이버 지도 V5 길찾기 URL 포맷
+  return `https://map.naver.com/v5/directions/${startPoint},숨고 오피스/-/${destinationType}/${destination},${encodeURIComponent(address)}`;
 };
 
 // 주소 지오코딩 (좌표 변환) 함수
@@ -44,11 +59,6 @@ export const RestaurantMap = ({ restaurants, height = '400px' }) => {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const infoWindowRef = useRef(null);
-
-  const DEFAULT_CENTER = {
-    lat: 37.5001,
-    lng: 127.0335
-  };
 
   useEffect(() => {
     const initializeMap = () => {
